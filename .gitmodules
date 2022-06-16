@@ -1,0 +1,3 @@
+[submodule "cgal"]
+	path = cgal
+	url = git@github.com:CGAL/cgal.git
