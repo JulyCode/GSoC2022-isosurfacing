@@ -22,7 +22,7 @@ public:
     typedef typename Traits::Point_3 Point_3;
     typedef typename Traits::Vector_3 Vector_3;
 
-    typedef Cartesian_grid_3<FT> Grid;
+    typedef Cartesian_grid_3<Traits> Grid;
 
     typedef PointRange Point_range;
     typedef PolygonRange Polygon_range;
@@ -85,15 +85,16 @@ private:
         cubeindex |= (dist7 < iso_value) << 7;
 
         const Vector_3 spacing(grid.voxel_x(), grid.voxel_y(), grid.voxel_z());
+        const Vector_3 offset(grid.offset_x(), grid.offset_y(), grid.offset_z());
 
-        const Vector_3 pos0 = Vector_3(idx0[0] * spacing.x(), idx0[1] * spacing.y(), idx0[2] * spacing.z());
-        const Vector_3 pos1 = Vector_3(idx1[0] * spacing.x(), idx1[1] * spacing.y(), idx1[2] * spacing.z());
-        const Vector_3 pos2 = Vector_3(idx2[0] * spacing.x(), idx2[1] * spacing.y(), idx2[2] * spacing.z());
-        const Vector_3 pos3 = Vector_3(idx3[0] * spacing.x(), idx3[1] * spacing.y(), idx3[2] * spacing.z());
-        const Vector_3 pos4 = Vector_3(idx4[0] * spacing.x(), idx4[1] * spacing.y(), idx4[2] * spacing.z());
-        const Vector_3 pos5 = Vector_3(idx5[0] * spacing.x(), idx5[1] * spacing.y(), idx5[2] * spacing.z());
-        const Vector_3 pos6 = Vector_3(idx6[0] * spacing.x(), idx6[1] * spacing.y(), idx6[2] * spacing.z());
-        const Vector_3 pos7 = Vector_3(idx7[0] * spacing.x(), idx7[1] * spacing.y(), idx7[2] * spacing.z());
+        const Vector_3 pos0 = Vector_3(idx0[0] * spacing.x(), idx0[1] * spacing.y(), idx0[2] * spacing.z()) + offset;
+        const Vector_3 pos1 = Vector_3(idx1[0] * spacing.x(), idx1[1] * spacing.y(), idx1[2] * spacing.z()) + offset;
+        const Vector_3 pos2 = Vector_3(idx2[0] * spacing.x(), idx2[1] * spacing.y(), idx2[2] * spacing.z()) + offset;
+        const Vector_3 pos3 = Vector_3(idx3[0] * spacing.x(), idx3[1] * spacing.y(), idx3[2] * spacing.z()) + offset;
+        const Vector_3 pos4 = Vector_3(idx4[0] * spacing.x(), idx4[1] * spacing.y(), idx4[2] * spacing.z()) + offset;
+        const Vector_3 pos5 = Vector_3(idx5[0] * spacing.x(), idx5[1] * spacing.y(), idx5[2] * spacing.z()) + offset;
+        const Vector_3 pos6 = Vector_3(idx6[0] * spacing.x(), idx6[1] * spacing.y(), idx6[2] * spacing.z()) + offset;
+        const Vector_3 pos7 = Vector_3(idx7[0] * spacing.x(), idx7[1] * spacing.y(), idx7[2] * spacing.z()) + offset;
 
         Point_3 vertlist[12];
         //TODO generate vertexlist
@@ -293,7 +294,7 @@ private:
         const Vector_3 p1 = oracle.pos(idx1[0], idx1[1], idx1[2]);
         const Vector_3 p2 = oracle.pos(idx2[0], idx2[1], idx2[2]);
 
-        const Vector_3 res = p1 * mu + p2 * (1 - mu);
+        const Vector_3 res = p2 * mu + p1 * (1 - mu);
         return Point_3(res.x(), res.y(), res.z());
     }
 

@@ -24,11 +24,9 @@ public:
 
 public:
     Isosurface_grid_3(const Input_function& function, const Bbox_3& domain, const FT resolution)
-        : grid(domain.x_span() / resolution, domain.y_span() / resolution, domain.z_span() / resolution) {
+        : grid(domain.x_span() / resolution, domain.y_span() / resolution, domain.z_span() / resolution, domain) {
 
         CGAL_static_assertion((std::is_floating_point<FT>::value));
-
-        // TODO: set resolution
 
         for (std::size_t x = 0; x < grid.xdim(); x++) {
             const FT x_pos = x * resolution + domain.min(0);
@@ -56,7 +54,7 @@ public:
     }
 
 private:
-    Cartesian_grid_3<FT> grid;
+    Cartesian_grid_3<Traits> grid;
 };
 
 
