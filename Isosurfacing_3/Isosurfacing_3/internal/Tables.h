@@ -3,6 +3,10 @@
 // tables
 /////////////////////////////////////////////////////
 
+// TODO: find better version with licence
+// compare to mc paper
+// maybe take from pierre / roberto
+
 // Polygonising a scalar field
 // Also known as: "3D Contouring", "Marching Cubes", "Surface Reconstruction" 
 // Written by Paul Bourke
