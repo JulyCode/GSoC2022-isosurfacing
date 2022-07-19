@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.1...3.23)
 
 project( Isosurfacing )
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 
@@ -41,7 +41,7 @@ find_package(OpenMP)
 # Creating entries for target: Isosurfacing
 # ############################
 
-file(GLOB SOURCES src/*.h src/*.cpp)
+file(GLOB SOURCES Isosurfacing_3/*.h Isosurfacing_3/*/*.h Isosurfacing_3/*/*/*.h Isosurfacing_3/*.cpp)
 
 add_executable( Isosurfacing  ${SOURCES} )
 
