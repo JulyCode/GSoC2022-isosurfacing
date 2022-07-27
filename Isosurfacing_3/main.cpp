@@ -45,7 +45,7 @@ int main() {
     Point_range points;
     Polygon_range polygons;
 
-    CGAL::make_triangle_mesh_using_marching_cubes(grid_oracle, 0.8f, points, polygons);
+    CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes(sphere_oracle, 0.8f, points, polygons);
 
     // TODO: compare results with mesh_3
 
@@ -53,6 +53,4 @@ int main() {
     CGAL::Polygon_mesh_processing::polygon_soup_to_polygon_mesh(points, polygons, mesh);
 
     CGAL::IO::write_OFF("result.off", mesh);
-
-    // write_off("result.off", result);
 }

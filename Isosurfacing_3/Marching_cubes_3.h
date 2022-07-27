@@ -1,18 +1,16 @@
 #ifndef CGAL_MARCHING_CUBES_3_H
 #define CGAL_MARCHING_CUBES_3_H
 
-#include <array>
 #include <mutex>
 
-#include "Isosurfacing_3/internal/Marching_cubes_3.h"
-#include "util.h"
+#include "Isosurfacing_3/internal/Marching_cubes_3_internal.h"
 
 namespace CGAL {
+namespace Isosurfacing {
 
 template <class Domain_, class PointRange, class PolygonRange>
 void make_triangle_mesh_using_marching_cubes(const Domain_& domain, const typename Domain_::FT iso_value,
                                              PointRange& points, PolygonRange& polygons) {
-    ScopeTimer timer;
 
     std::mutex mutex;
 
@@ -34,14 +32,14 @@ void make_triangle_mesh_using_marching_cubes(const Domain_& domain, const typena
 
             for (std::size_t j = j_start; j < j_end; j++) {
                 for (std::size_t i = 1; i < size_i - 1; i++) {
-                    internal::Marching_cubes_3::marching_cubes_cell(i, j, k, domain, iso_value, points, polygons,
-                                                                    mutex);
+                    internal::marching_cubes_cell(i, j, k, domain, iso_value, points, polygons, mutex);
                 }
             }
         }
     }
 }
 
+}  // namespace Isosurfacing
 }  // namespace CGAL
 
 #endif  // CGAL_MARCHING_CUBES_3_H

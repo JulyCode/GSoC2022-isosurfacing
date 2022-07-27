@@ -1,12 +1,15 @@
 #ifndef CGAL_MARCHING_CUBES_3_INTERNAL_MARCHING_CUBES_3_H
 #define CGAL_MARCHING_CUBES_3_INTERNAL_MARCHING_CUBES_3_H
 
+#include <array>
+#include <iostream>
+#include <mutex>
+
 #include "Tables.h"
 
 namespace CGAL {
-
+namespace Isosurfacing {
 namespace internal {
-namespace Marching_cubes_3 {
 
 template <class Point_3, typename FT>
 Point_3 vertex_interpolation(const Point_3& p0, const Point_3& p1, const FT d0, const FT d1, const FT iso_value) {
@@ -21,7 +24,7 @@ Point_3 vertex_interpolation(const Point_3& p0, const Point_3& p1, const FT d0, 
     }
 
     if (mu < 0.0 || mu > 1.0) {
-        printf("ERROR: isolevel is not between points\n");  // TODO: error handling
+        std::cerr << "ERROR: isolevel is not between points\n" << std::endl;  // TODO: error handling
     }
 
     // linear interpolation
@@ -144,9 +147,8 @@ void marching_cubes_cell(const std::size_t x, const std::size_t y, const std::si
     }
 }
 
-}  // namespace Marching_cubes_3
 }  // namespace internal
-
+}  // namespace Isosurfacing
 }  // namespace CGAL
 
 #endif  // CGAL_MARCHING_CUBES_3_INTERNAL_MARCHING_CUBES_3_H
