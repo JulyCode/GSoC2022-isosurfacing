@@ -41,7 +41,7 @@ find_package(OpenMP)
 # Creating entries for target: Isosurfacing
 # ############################
 
-file(GLOB SOURCES Isosurfacing_3/*.h Isosurfacing_3/*/*.h Isosurfacing_3/*/*/*.h Isosurfacing_3/*.cpp)
+file(GLOB SOURCES Isosurfacing_3/*.h Isosurfacing_3/*/*.h Isosurfacing_3/*/*/*.h Isosurfacing_3/main.cpp)
 
 add_executable( Isosurfacing  ${SOURCES} )
 
@@ -59,5 +59,29 @@ if(MSVC)
   target_compile_options(Isosurfacing PRIVATE /W4)
 else()
   target_compile_options(Isosurfacing PRIVATE -Wall -Wextra -pedantic)
+endif()
+
+
+# Creating entries for target: Benchmark
+# ############################
+
+file(GLOB SOURCES Isosurfacing_3/*.h Isosurfacing_3/*/*.h Isosurfacing_3/*/*/*.h Isosurfacing_3/benchmark.cpp)
+
+add_executable( Benchmark  ${SOURCES} )
+
+add_to_cached_list( CGAL_EXECUTABLE_TARGETS Benchmark )
+
+# Link the executable to CGAL and third-party libraries
+target_link_libraries( Benchmark PRIVATE CGAL::CGAL )
+
+if(OpenMP_CXX_FOUND)
+    target_link_libraries( Benchmark PRIVATE OpenMP::OpenMP_CXX )
+endif()
+
+# enable all warnings
+if(MSVC)
+  target_compile_options(Benchmark PRIVATE /W4)
+else()
+  target_compile_options(Benchmark PRIVATE -Wall -Wextra -pedantic)
 endif()
 

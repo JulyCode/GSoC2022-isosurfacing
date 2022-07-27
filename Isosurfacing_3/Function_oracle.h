@@ -48,6 +48,13 @@ private:
     std::array<std::size_t, 3> sizes;
 };
 
+
+template <typename Function, class GeomTraits = typename Function::Geom_traits>
+Function_oracle<GeomTraits, Function> create_function_oracle(const Function& func, const CGAL::Bbox_3& domain,
+                                                             const typename GeomTraits::Vector_3& resolution) {
+    return Function_oracle<GeomTraits, Function>(func, domain, resolution);
+}
+
 }  // end namespace CGAL
 
 #endif  // CGAL_FUNCTION_ORACLE_H
