@@ -54,3 +54,10 @@ if(OpenMP_CXX_FOUND)
     target_link_libraries( Isosurfacing PRIVATE OpenMP::OpenMP_CXX )
 endif()
 
+# enable all warnings
+if(MSVC)
+  target_compile_options(Isosurfacing PRIVATE /W4)
+else()
+  target_compile_options(Isosurfacing PRIVATE -Wall -Wextra -pedantic)
+endif()
+
