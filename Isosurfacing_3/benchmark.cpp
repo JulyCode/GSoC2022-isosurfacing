@@ -28,7 +28,7 @@ typedef std::vector<std::vector<std::size_t>> Polygon_range;
 
 
 int64_t implicit_sphere(const std::size_t N) {
-    const FT resolution = 1.0 / N;
+    const FT resolution = 2.0 / N;
 
     struct SphereFunction {
         typedef Kernel Geom_traits;
@@ -58,10 +58,11 @@ int64_t implicit_sphere(const std::size_t N) {
 }
 
 int64_t grid_sphere(const std::size_t N) {
-    const FT resolution = 1.0 / N;
+    const FT resolution = 2.0 / N;
 
     Grid grid(N, N, N, {-1, -1, -1, 1, 1, 1});
 
+#pragma omp parallel for
     for (std::size_t x = 0; x < grid.xdim(); x++) {
         const FT xp = x * resolution - 1.0;
 
@@ -96,7 +97,7 @@ int main(int argc, char* argv[]) {
     scenarios["implicit_sphere"] = implicit_sphere;
     scenarios["grid_sphere"] = grid_sphere;
 
-    if (argc != 2) {
+    if (argc != 3) {
         std::cout << "Usage: " << argv[0] << " <scenario> <N>" << std::endl;
         std::cout << "Available scenarios:" << std::endl;
         for (auto& s : scenarios) {

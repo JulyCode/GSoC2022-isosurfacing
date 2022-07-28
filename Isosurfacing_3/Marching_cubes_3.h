@@ -22,9 +22,9 @@ void make_triangle_mesh_using_marching_cubes(const Domain_& domain, const typena
 
     // TODO: look at polygon mesh processing for tbb (also linking)
 
-#pragma omp parallel for
-    for (std::size_t bj = 1; bj < size_j - 1; bj += blocking_size) {
 
+    for (std::size_t bj = 1; bj < size_j - 1; bj += blocking_size) {
+#pragma omp parallel for
         for (std::size_t k = 1; k < size_k - 1; k++) {
 
             const std::size_t j_start = bj;
