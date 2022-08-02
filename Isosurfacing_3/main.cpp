@@ -11,6 +11,7 @@
 #include "Cartesian_grid_oracle.h"
 #include "Function_oracle.h"
 #include "Marching_cubes_3.h"
+#include "Timer.h"
 
 typedef CGAL::Simple_cartesian<float> Kernel;
 typedef typename Kernel::Vector_3 Vector_3;
@@ -45,7 +46,10 @@ int main() {
     Point_range points;
     Polygon_range polygons;
 
-    CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes(sphere_oracle, 0.8f, points, polygons);
+    {
+        ScopeTimer timer;
+        CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes(grid_oracle, 0.8f, points, polygons);
+    }
 
     // TODO: compare results with mesh_3
 

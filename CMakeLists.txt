@@ -65,7 +65,7 @@ endif()
 # Creating entries for target: Benchmark
 # ############################
 
-file(GLOB SOURCES Isosurfacing_3/*.h Isosurfacing_3/*/*.h Isosurfacing_3/*/*/*.h Isosurfacing_3/benchmark.cpp)
+file(GLOB SOURCES Isosurfacing_3/*.h Isosurfacing_3/*/*.h Isosurfacing_3/*/*/*.h Isosurfacing_3/benchmarks/benchmark.cpp)
 
 add_executable( Benchmark  ${SOURCES} )
 

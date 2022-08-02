@@ -9,11 +9,11 @@
 #include <limits>
 #include <unordered_map>
 
-#include "Cartesian_grid_3.h"
-#include "Cartesian_grid_oracle.h"
-#include "Function_oracle.h"
-#include "Marching_cubes_3.h"
-#include "Timer.h"
+#include "../Cartesian_grid_3.h"
+#include "../Cartesian_grid_oracle.h"
+#include "../Function_oracle.h"
+#include "../Marching_cubes_3.h"
+#include "../Timer.h"
 
 typedef CGAL::Simple_cartesian<double> Kernel;
 typedef typename Kernel::FT FT;
