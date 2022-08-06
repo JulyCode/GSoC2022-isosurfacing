@@ -10,8 +10,8 @@
 #include <unordered_map>
 
 #include "../Cartesian_grid_3.h"
-#include "../Cartesian_grid_oracle.h"
-#include "../Function_oracle.h"
+#include "../Cartesian_grid_domain.h"
+#include "../Implicit_domain.h"
 #include "../Marching_cubes_3.h"
 #include "../Timer.h"
 
@@ -41,7 +41,7 @@ int64_t implicit_sphere(const std::size_t N) {
     };
 
     auto sphere_oracle =
-        create_function_oracle(SphereFunction(), {-1, -1, -1, 1, 1, 1}, Vector_3(resolution, resolution, resolution));
+        create_implicit_domain(SphereFunction(), {-1, -1, -1, 1, 1, 1}, Vector_3(resolution, resolution, resolution));
 
     Point_range points;
     Polygon_range polygons;
@@ -76,7 +76,7 @@ int64_t grid_sphere(const std::size_t N) {
             }
         }
     }
-    CGAL::Cartesian_grid_oracle<Kernel> grid_oracle(grid);
+    CGAL::Cartesian_grid_domain<Kernel> grid_oracle(grid);
 
     Point_range points;
     Polygon_range polygons;

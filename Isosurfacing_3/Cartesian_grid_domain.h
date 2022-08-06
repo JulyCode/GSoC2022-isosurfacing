@@ -1,19 +1,19 @@
-#ifndef CGAL_CARTESIAN_GRID_ORACLE_H
-#define CGAL_CARTESIAN_GRID_ORACLE_H
+#ifndef CGAL_CARTESIAN_GRID_DOMAIN_H
+#define CGAL_CARTESIAN_GRID_DOMAIN_H
 
 #include "Cartesian_grid_3.h"
 
 namespace CGAL {
 
 template <class GeomTraits>
-class Cartesian_grid_oracle {
+class Cartesian_grid_domain {
 public:
     typedef GeomTraits Geom_traits;
     typedef typename Geom_traits::FT FT;
     typedef typename Geom_traits::Point_3 Point_3;
 
 public:
-    Cartesian_grid_oracle(const Cartesian_grid_3<Geom_traits>& grid) : grid(&grid) {}
+    Cartesian_grid_domain(const Cartesian_grid_3<Geom_traits>& grid) : grid(&grid) {}
 
     std::size_t size_x() const {
         return grid->xdim();
@@ -43,4 +43,4 @@ private:
 
 }  // namespace CGAL
 
-#endif  // CGAL_CARTESIAN_GRID_ORACLE_H
+#endif  // CGAL_CARTESIAN_GRID_DOMAIN_H

@@ -1,10 +1,10 @@
-#ifndef CGAL_FUNCTION_ORACLE_H
-#define CGAL_FUNCTION_ORACLE_H
+#ifndef CGAL_IMPLICIT_DOMAIN_H
+#define CGAL_IMPLICIT_DOMAIN_H
 
 namespace CGAL {
 
 template <class GeomTraits, typename Function>
-class Function_oracle {
+class Implicit_domain {
 public:
     typedef GeomTraits Geom_traits;
     typedef typename Geom_traits::FT FT;
@@ -12,7 +12,7 @@ public:
     typedef typename Geom_traits::Vector_3 Vector_3;
 
 public:
-    Function_oracle(const Function& func, const CGAL::Bbox_3& domain, const Vector_3& resolution)
+    Implicit_domain(const Function& func, const CGAL::Bbox_3& domain, const Vector_3& resolution)
         : func(func), bbox(domain), resolution(resolution) {
 
         sizes[0] = domain.x_span() / resolution.x();
@@ -50,11 +50,11 @@ private:
 
 
 template <typename Function, class GeomTraits = typename Function::Geom_traits>
-Function_oracle<GeomTraits, Function> create_function_oracle(const Function& func, const CGAL::Bbox_3& domain,
+Implicit_domain<GeomTraits, Function> create_implicit_domain(const Function& func, const CGAL::Bbox_3& domain,
                                                              const typename GeomTraits::Vector_3& resolution) {
-    return Function_oracle<GeomTraits, Function>(func, domain, resolution);
+    return Implicit_domain<GeomTraits, Function>(func, domain, resolution);
 }
 
 }  // end namespace CGAL
 
-#endif  // CGAL_FUNCTION_ORACLE_H
+#endif  // CGAL_IMPLICIT_DOMAIN_H
