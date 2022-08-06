@@ -6,6 +6,7 @@
 #include <mutex>
 
 #include "Tables.h"
+#include "Tables_old.h"
 
 namespace CGAL {
 namespace Isosurfacing {
@@ -124,7 +125,7 @@ void marching_cubes_cell(const std::size_t x, const std::size_t y, const std::si
         vertlist[11] = vertex_interpolation(pos3, pos7, dist3, dist7, iso_value);
     }
 
-    std::lock_guard<std::mutex> lock(mutex);
+    // std::lock_guard<std::mutex> lock(mutex);
 
     for (int i = 0; triTable[cubeindex][i] != -1; i += 3) {
 
@@ -144,6 +145,113 @@ void marching_cubes_cell(const std::size_t x, const std::size_t y, const std::si
         triangle.push_back(p0_idx + 0);
         triangle.push_back(p0_idx + 1);
         triangle.push_back(p0_idx + 2);
+    }
+}
+
+template <class Domain_, class PointRange, class PolygonRange>
+void marching_cubes_cell_RG(const std::size_t x, const std::size_t y, const std::size_t z, const Domain_& domain,
+                            const typename Domain_::FT iso_value, PointRange& points, PolygonRange& polygons,
+                            std::mutex& mutex, std::unordered_map<std::size_t, std::size_t>& vertex_map) {
+
+    typedef typename Domain_::FT FT;
+    typedef typename Domain_::Point_3 Point;
+
+    /// The structure _Vertex_ represents a vertex by giving its unique global index and the unique index of the edge.
+    struct Vertex {
+        std::size_t g_idx;  //<! Index indicating the position in vertex array, used final shared vertex list.
+        std::size_t g_edg;  //<! Unique global index used a key to find unique vertex list in the map.
+    };
+
+    // we need to compute up to 3 vertices at the interior of a cell, therefore
+    // the cell shift factor is set to 3+3 = 6, i.e. 3 edges assigned to a cell for global numberig
+    // and 3 vertices in the interior of the cell
+    const int cell_shift_factor = 3;
+
+    // there can be at most 12 intersections
+    std::array<Vertex, 12> vertices;
+
+    // slice hex
+    // collect function values and build index
+    FT values[8];
+    Point corners[8];
+
+    int vi = 0;
+    std::bitset<8> index = 0;
+    for (int kl = 0; kl <= 1; kl++) {
+        for (int jl = 0; jl <= 1; jl++) {
+            for (int il = 0; il <= 1; il++) {
+                // collect scalar values and computex index
+                corners[vi] = domain.position(x + il, y + jl, z + kl);
+                values[vi] = domain.value(x + il, y + jl, z + kl);
+
+                if (values[vi] >= iso_value) {
+                    // index.set(VertexMapping[vi]);
+                    index.set(vi);
+                }
+                // next cell vertex
+                vi++;
+            }
+        }
+    }
+
+    // collect edges from table and
+    // interpolate triangle vertex positon
+    const int i_case = int(index.to_ullong());
+    // compute for this case the vertices
+    ushort flag = 1;
+    for (int edge = 0; edge < 12; edge++) {
+        if (flag & e_pattern[i_case]) {
+            // the edge global index is given by the vertex global index + the edge offset
+            const std::size_t ix = x + global_edge_id[edge][0];
+            const std::size_t iy = y + global_edge_id[edge][1];
+            const std::size_t iz = z + global_edge_id[edge][2];
+            const std::size_t global_index = (iz * domain.size_y() * domain.size_x() + iy * domain.size_x() + ix);
+            vertices[edge].g_edg = cell_shift_factor * global_index + global_edge_id[edge][3];
+            // generate vertex here, do not care at this point if vertex already exist
+            // interpolation weight
+            const int v0 = l_edges[edge][0];
+            const int v1 = l_edges[edge][1];
+            const FT l = (iso_value - values[v0]) / (values[v1] - values[v0]);
+            // interpolate vertex
+            const FT px = (1 - l) * corners[v0][0] + l * corners[v1][0];
+            const FT py = (1 - l) * corners[v0][1] + l * corners[v1][1];
+            const FT pz = (1 - l) * corners[v0][2] + l * corners[v1][2];
+            const Point position(px, py, pz);
+
+            // std::lock_guard<std::mutex> lock(mutex);
+            // set vertex index
+            // const auto s_index = vertex_map.find(vertices[edge].g_edg);
+            // if (s_index == vertex_map.end()) {
+            // index not found! Add index to hash map
+            const std::size_t g_idx = points.size();
+            // vertex_map[vertices[edge].g_edg] = g_idx;
+            vertices[edge].g_idx = g_idx;
+            points.push_back(position);
+            //} else {
+            //    vertices[edge].g_idx = s_index->second;  // this is vertex global index g_idx
+            //}
+        }
+        flag <<= 1;
+    }
+
+    // std::lock_guard<std::mutex> lock(mutex);
+    // construct triangles
+    for (int t = 0; t < 16; t += 3) {
+        const int t_index = i_case * 16 + t;
+        // if (e_tris_list[t_index] == 0x7f)
+        if (t_pattern[t_index] == -1) break;
+
+        const int eg0 = t_pattern[t_index];
+        const int eg1 = t_pattern[t_index + 1];
+        const int eg2 = t_pattern[t_index + 2];
+
+        // insert new triangle in list
+        polygons.push_back({});
+        auto& triangle = polygons.back();
+
+        triangle.push_back(vertices[eg0].g_idx);
+        triangle.push_back(vertices[eg1].g_idx);
+        triangle.push_back(vertices[eg2].g_idx);
     }
 }
 
