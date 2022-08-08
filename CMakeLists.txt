@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.1...3.23)
 
 project( Isosurfacing )
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 
@@ -41,47 +41,28 @@ find_package(OpenMP)
 # Creating entries for target: Isosurfacing
 # ############################
 
-file(GLOB SOURCES Isosurfacing_3/*.h Isosurfacing_3/*/*.h Isosurfacing_3/*/*/*.h Isosurfacing_3/main.cpp)
+file(GLOB SOURCES 
+  Isosurfacing_3/*.h 
+  Isosurfacing_3/*/*.h 
+  Isosurfacing_3/*/*/*.h 
+)
 
-add_executable( Isosurfacing  ${SOURCES} )
+file(GLOB EXECUTABLES Isosurfacing_3/*.cpp)
 
-add_to_cached_list( CGAL_EXECUTABLE_TARGETS Isosurfacing )
+foreach(exec ${EXECUTABLES})
+  get_filename_component(exec_name ${exec} NAME_WE)
+  message(STATUS "Add executable ${exec_name}")
+  
+  add_executable( ${exec_name} ${SOURCES} ${exec} )
 
-# Link the executable to CGAL and third-party libraries
-target_link_libraries( Isosurfacing PRIVATE CGAL::CGAL )
+  #add_to_cached_list( CGAL_EXECUTABLE_TARGETS ${exec_name} )
 
-if(OpenMP_CXX_FOUND)
-    target_link_libraries( Isosurfacing PRIVATE OpenMP::OpenMP_CXX )
-endif()
+  # Link the executable to CGAL and third-party libraries
+  target_link_libraries( ${exec_name} PRIVATE CGAL::CGAL )
 
-# enable all warnings
-if(MSVC)
-  target_compile_options(Isosurfacing PRIVATE /W4)
-else()
-  target_compile_options(Isosurfacing PRIVATE -Wall -Wextra -pedantic)
-endif()
-
-
-# Creating entries for target: Benchmark
-# ############################
-
-file(GLOB SOURCES Isosurfacing_3/*.h Isosurfacing_3/*/*.h Isosurfacing_3/*/*/*.h Isosurfacing_3/benchmarks/benchmark.cpp)
-
-add_executable( Benchmark  ${SOURCES} )
-
-add_to_cached_list( CGAL_EXECUTABLE_TARGETS Benchmark )
-
-# Link the executable to CGAL and third-party libraries
-target_link_libraries( Benchmark PRIVATE CGAL::CGAL )
-
-if(OpenMP_CXX_FOUND)
-    target_link_libraries( Benchmark PRIVATE OpenMP::OpenMP_CXX )
-endif()
-
-# enable all warnings
-if(MSVC)
-  target_compile_options(Benchmark PRIVATE /W4)
-else()
-  target_compile_options(Benchmark PRIVATE -Wall -Wextra -pedantic)
-endif()
+  if(OpenMP_CXX_FOUND)
+      target_link_libraries( ${exec_name} PRIVATE OpenMP::OpenMP_CXX )
+  endif()
+  
+endforeach()
 

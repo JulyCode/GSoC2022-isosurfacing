@@ -1,13 +1,39 @@
-﻿---
-BasedOnStyle: Google
-AccessModifierOffset: '-4'
-AllowShortFunctionsOnASingleLine: Empty
-ColumnLimit: '120'
+---
+BasedOnStyle: LLVM
+AlignAfterOpenBracket: Align
+AlignConsecutiveMacros: 'true'
+AlignConsecutiveAssignments: 'true'
+AlignOperands: 'true'
+AlignTrailingComments: 'true'
+AllowAllConstructorInitializersOnNextLine: 'true'
+AllowAllParametersOfDeclarationOnNextLine: 'true'
+AllowShortLambdasOnASingleLine: All
+AlwaysBreakTemplateDeclarations: 'true'
+ColumnLimit: '150'
+Cpp11BracedListStyle: 'false'
+IncludeBlocks: Regroup
+IndentPPDirectives: AfterHash
 IndentWidth: '4'
-KeepEmptyLinesAtTheStartOfBlocks: 'true'
+IndentWrappedFunctionNames: 'true'
+KeepEmptyLinesAtTheStartOfBlocks: 'false'
 Language: Cpp
-MaxEmptyLinesToKeep: '2'
-NamespaceIndentation: None
+NamespaceIndentation: All
+PointerAlignment: Left
+SortIncludes: 'true'
+SpaceAfterCStyleCast: 'false'
+SpaceAfterLogicalNot: 'false'
+SpaceAfterTemplateKeyword: 'false'
+SpaceBeforeAssignmentOperators: 'true'
+SpaceBeforeCpp11BracedList: 'true'
+SpaceBeforeParens: Never
+SpaceBeforeRangeBasedForLoopColon: 'false'
+SpaceInEmptyParentheses: 'false'
+SpacesBeforeTrailingComments: '4'
+SpacesInAngles: 'false'
+SpacesInCStyleCastParentheses: 'false'
+SpacesInContainerLiterals: 'true'
+SpacesInParentheses: 'true'
+SpacesInSquareBrackets: 'false'
 UseTab: Never
 
 ...
