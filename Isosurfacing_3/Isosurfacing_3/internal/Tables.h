@@ -5,6 +5,82 @@ namespace CGAL {
 namespace Isosurfacing {
 namespace internal {
 
+namespace Cube_table {
+/*
+ * Naming convention from "A parallel dual marching cubes approach to quad only surface reconstruction - Grosso &
+ * Zint"
+ *
+ *        ^ y
+ *        |
+ *       v2------e2------v3
+ *       /|             /|
+ *     e11|           e10|
+ *     /  e3          /  e1
+ *   v6------e6------v7  |
+ *    |   |          |   |
+ *    |  v0------e0--|---v1 --> x
+ *    e7 /           e5 /
+ *    | e8           | e9
+ *    |/             |/
+ *   v4------e4------v5
+ *   /
+ *  < z
+ */
+
+constexpr int N_VERTICES = 8;
+constexpr int N_EDGES = 12;
+
+// This table iterates around an edge of a voxel in positive direction, starting from the given voxel (0,0,0). The
+// iteration is described in coordinates relative to the given voxel. The last number is the local edge index.
+constexpr int edge_to_voxel_neighbor[N_EDGES][4][4] = {
+    {{0, 0, 0, 0}, {0, -1, 0, 2}, {0, -1, -1, 6}, {0, 0, -1, 4}},    // e0
+    {{0, 0, 0, 1}, {1, 0, 0, 3}, {1, 0, -1, 7}, {0, 0, -1, 5}},      // e1
+    {{0, 0, 0, 2}, {0, 0, -1, 6}, {0, 1, -1, 4}, {0, 1, 0, 0}},      // e2
+    {{0, 0, 0, 3}, {0, 0, -1, 7}, {-1, 0, -1, 5}, {-1, 0, 0, 1}},    // e3
+    {{0, 0, 0, 4}, {0, 0, 1, 0}, {0, -1, 1, 2}, {0, -1, 0, 6}},      // e4
+    {{0, 0, 0, 5}, {0, 0, 1, 1}, {1, 0, 1, 3}, {1, 0, 0, 7}},        // e5
+    {{0, 0, 0, 6}, {0, 1, 0, 4}, {0, 1, 1, 0}, {0, 0, 1, 2}},        // e6
+    {{0, 0, 0, 7}, {-1, 0, 0, 5}, {-1, 0, 1, 1}, {0, 0, 1, 3}},      // e7
+    {{0, 0, 0, 8}, {-1, 0, 0, 9}, {-1, -1, 0, 10}, {0, -1, 0, 11}},  // e8
+    {{0, 0, 0, 9}, {0, -1, 0, 10}, {1, -1, 0, 11}, {1, 0, 0, 8}},    // e9
+    {{0, 0, 0, 10}, {1, 0, 0, 11}, {1, 1, 0, 8}, {0, 1, 0, 9}},      // e10
+    {{0, 0, 0, 11}, {0, 1, 0, 8}, {-1, 1, 0, 9}, {-1, 0, 0, 10}}     // e11
+};
+
+/* The global edge index consists of the lexicographical index of the v0 vertex of a voxel, and an index that
+ * represents the axis. This table maps from the axis index to the local edge index: 0 = x-axis --> 0 1 = y-axis -->
+ * 3 2 = z-axis --> 8
+ */
+constexpr int edge_store_index[3] = {0, 3, 8};
+
+// The local vertex indices of an edge. The indices are sorted by axis direction.
+constexpr int edge_to_vertex[N_EDGES][2] = {
+    {0, 1},  // e0
+    {1, 3},  // e1
+    {2, 3},  // e2
+    {0, 2},  // e3
+    {4, 5},  // e4
+    {5, 7},  // e5
+    {6, 7},  // e6
+    {4, 6},  // e7
+    {0, 4},  // e8
+    {1, 5},  // e9
+    {3, 7},  // e10
+    {2, 6}   // e11
+};
+
+// The local vertex coordinates within a voxel.
+constexpr int local_vertex_position[N_VERTICES][3] = {
+    {0, 0, 0},  // v0
+    {1, 0, 0},  // v1
+    {0, 1, 0},  // v2
+    {1, 1, 0},  // v3
+    {0, 0, 1},  // v4
+    {1, 0, 1},  // v5
+    {0, 1, 1},  // v6
+    {1, 1, 1}   // v7
+};
+
 // edges are uniquely characterized by the two end vertices, which have a unique vertex id
 // the end vertices of the edge are computed in the cell by giving the indices (i,j,k).
 // These indices are obtained from the cell index by adding 0 or 1 to i, j or k respectively
@@ -13,14 +89,13 @@ namespace internal {
 // The first 3 indices are for the first vertex and the second 3 for the second vertex.
 // there are 12 edges, assign to each vertex three edges, the global edge numbering
 // consist of 3*global_vertex_id + edge_offset.
-const int global_edge_id[][4] = {{0, 0, 0, 0}, {1, 0, 0, 1}, {0, 1, 0, 0}, {0, 0, 0, 1}, {0, 0, 1, 0}, {1, 0, 1, 1},
+constexpr int global_edge_id[][4] = {{0, 0, 0, 0}, {1, 0, 0, 1}, {0, 1, 0, 0}, {0, 0, 0, 1},
+                                     {0, 0, 1, 0}, {1, 0, 1, 1},
                                  {0, 1, 1, 0}, {0, 0, 1, 1}, {0, 0, 0, 2}, {1, 0, 0, 2}, {1, 1, 0, 2}, {0, 1, 0, 2}};
-// the end vertices of an edge
-int l_edges[12][2] = {{0, 1}, {1, 3}, {2, 3}, {0, 2}, {4, 5}, {5, 7}, {6, 7}, {4, 6}, {0, 4}, {1, 5}, {3, 7}, {2, 6}};
 
 // probably a list without errors
 // indicates which edges has to be intersected
-const unsigned short e_pattern[256] = {
+constexpr int intersected_edges[256] = {
     0,    265,  515,  778,  2060, 2309, 2575, 2822, 1030, 1295, 1541, 1804, 3082, 3331, 3593, 3840, 400,  153,  915,
     666,  2460, 2197, 2975, 2710, 1430, 1183, 1941, 1692, 3482, 3219, 3993, 3728, 560,  825,  51,   314,  2620, 2869,
     2111, 2358, 1590, 1855, 1077, 1340, 3642, 3891, 3129, 3376, 928,  681,  419,  170,  2988, 2725, 2479, 2214, 1958,
@@ -37,7 +112,7 @@ const unsigned short e_pattern[256] = {
     1030, 2822, 2575, 2309, 2060, 778,  515,  265,  0};
 
 // list of triangles for Marching Cubes case t, position at t*16 + tri
-const char t_pattern[4096] = {
+constexpr int triangle_cases[4096] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  // quitte: 0 <-> mc: 0, class rep: 0
     0,  3,  8,  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  // quitte: 1 <-> mc: 1, class rep: 1
     0,  9,  1,  -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,  // quitte: 2 <-> mc: 2, class rep: 1
@@ -297,7 +372,7 @@ const char t_pattern[4096] = {
 };
 
 // list of ambiguous cases
-const unsigned char t_ambig[256] = {
+constexpr int t_ambig[256] = {
     0,    // quitte: 0 <-> mc: 0, class representative: 0
     1,    // quitte: 1 <-> mc: 1, class representative: 1
     2,    // quitte: 2 <-> mc: 2, class representative: 1
@@ -555,6 +630,8 @@ const unsigned char t_ambig[256] = {
     254,  // quitte: 254 <-> mc: 254, class representative: 1
     255   // quitte: 255 <-> mc: 255, class representative: 0
 };
+
+}  // namespace Cube_table
 
 }  // namespace internal
 }  // namespace Isosurfacing
