@@ -6,17 +6,17 @@
 namespace CGAL {
 namespace Isosurfacing {
 
-template <class Domain_, class PointRange, class PolygonRange,
+template <typename Concurrency_tag = Sequential_tag, class Domain_, class PointRange, class PolygonRange,
           class Positioning = internal::Positioning::QEM_SVD<false>>
 void make_quad_mesh_using_dual_contouring_2(const Domain_& domain, const typename Domain_::FT iso_value,
                                             PointRange& points, PolygonRange& polygons,
                                             const Positioning& positioning = Positioning()) {
 
     internal::Dual_contouring_position_functor<Domain_, Positioning> pos_func(domain, iso_value, positioning);
-    domain.iterate_cells(pos_func);
+    domain.iterate_cells(pos_func, Concurrency_tag());
 
     internal::Dual_contouring_quads_functor<Domain_> quad_func(domain, iso_value);
-    domain.iterate_edges(quad_func);
+    domain.iterate_edges(quad_func, Concurrency_tag());
 
     // write points and quads in ranges
     points.resize(pos_func.points_counter);

@@ -4,6 +4,7 @@
 #include <array>
 #include <eigen3/Eigen/SVD>
 #include <map>
+#include <mutex>
 
 #include "Tables.h"
 
@@ -276,6 +277,8 @@ public:
         // compute dc-vertices
         Point_3 p;
         if (positioning.position(domain, iso_value, v, p)) {
+
+            std::lock_guard<std::mutex> lock(mutex);
             map_voxel_to_point[v] = p;
             map_voxel_to_point_id[v] = points_counter++;
         }
@@ -289,6 +292,8 @@ public:
     std::map<Cell_handle, std::size_t> map_voxel_to_point_id;
     std::map<Cell_handle, Point_3> map_voxel_to_point;
     std::size_t points_counter;
+
+    std::mutex mutex;
 };
 
 template <class Domain_>
@@ -311,9 +316,14 @@ public:
 
         if (s0 <= iso_value && s1 > iso_value) {
             const auto voxels = domain.cells_incident_to_edge(e);
+
+            std::lock_guard<std::mutex> lock(mutex);
             quads[e] = {voxels[0], voxels[1], voxels[2], voxels[3]};
+
         } else if (s1 <= iso_value && s0 > iso_value) {
             const auto voxels = domain.cells_incident_to_edge(e);
+
+            std::lock_guard<std::mutex> lock(mutex);
             quads[e] = {voxels[0], voxels[3], voxels[2], voxels[1]};
         }
     }
@@ -323,6 +333,8 @@ public:
 
     const Domain& domain;
     FT iso_value;
+
+    std::mutex mutex;
 };
 
 }  // namespace internal

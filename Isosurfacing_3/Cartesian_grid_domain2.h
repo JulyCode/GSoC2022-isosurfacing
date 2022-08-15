@@ -1,6 +1,8 @@
 #ifndef CGAL_CARTESIAN_GRID_DOMAIN2_H
 #define CGAL_CARTESIAN_GRID_DOMAIN2_H
 
+#include <tbb/parallel_for.h>
+
 #include "Cartesian_grid_3.h"
 #include "Isosurfacing_3/internal/Tables.h"
 
@@ -107,7 +109,7 @@ public:
     }
 
     template <typename Functor>
-    void iterate_edges(Functor& f) const {
+    void iterate_edges(Functor& f, Sequential_tag) const {
         const std::size_t size_x = grid->xdim();
         const std::size_t size_y = grid->ydim();
         const std::size_t size_z = grid->zdim();
@@ -125,12 +127,32 @@ public:
     }
 
     template <typename Functor>
-    void iterate_cells(Functor& f) const {
+    void iterate_edges(Functor& f, Parallel_tag) const {
         const std::size_t size_x = grid->xdim();
         const std::size_t size_y = grid->ydim();
         const std::size_t size_z = grid->zdim();
 
-        //#pragma omp parallel for
+        auto iterator = [=, &f](const tbb::blocked_range<std::size_t>& r) {
+            for (std::size_t x = r.begin(); x != r.end(); x++) {
+                for (std::size_t y = 0; y < size_y - 1; y++) {
+                    for (std::size_t z = 0; z < size_z - 1; z++) {
+                        f({x, y, z, 0});
+                        f({x, y, z, 1});
+                        f({x, y, z, 2});
+                    }
+                }
+            }
+        };
+
+        tbb::parallel_for(tbb::blocked_range<std::size_t>(0, size_x - 1), iterator);
+    }
+
+    template <typename Functor>
+    void iterate_cells(Functor& f, Sequential_tag) const {
+        const std::size_t size_x = grid->xdim();
+        const std::size_t size_y = grid->ydim();
+        const std::size_t size_z = grid->zdim();
+
         for (std::size_t x = 0; x < size_x - 1; x++) {
             for (std::size_t y = 0; y < size_y - 1; y++) {
                 for (std::size_t z = 0; z < size_z - 1; z++) {
@@ -139,6 +161,27 @@ public:
             }
         }
     }
+
+#ifdef CGAL_LINKED_WITH_TBB
+    template <typename Functor>
+    void iterate_cells(Functor& f, Parallel_tag) const {
+        const std::size_t size_x = grid->xdim();
+        const std::size_t size_y = grid->ydim();
+        const std::size_t size_z = grid->zdim();
+
+        auto iterator = [=, &f](const tbb::blocked_range<std::size_t>& r) {
+            for (std::size_t x = r.begin(); x != r.end(); x++) {
+                for (std::size_t y = 0; y < size_y - 1; y++) {
+                    for (std::size_t z = 0; z < size_z - 1; z++) {
+                        f({x, y, z});
+                    }
+                }
+            }
+        };
+
+        tbb::parallel_for(tbb::blocked_range<std::size_t>(0, size_x - 1), iterator);
+    }
+#endif  // CGAL_LINKED_WITH_TBB
 
 private:
     const Cartesian_grid_3<Geom_traits>* grid;

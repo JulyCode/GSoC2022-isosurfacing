@@ -1,87 +1,37 @@
 # Created by the script cgal_create_CMakeLists
 # This is the CMake script for compiling a set of CGAL applications.
 
-cmake_minimum_required(VERSION 3.1...3.23)
-
+cmake_minimum_required(VERSION 3.1...3.14)
 project( Isosurfacing )
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+find_package(CGAL REQUIRED)
 
-# CGAL and its components
-find_package( CGAL QUIET COMPONENTS  )
+create_single_source_cgal_program( "Isosurfacing_3/main.cpp" )
+create_single_source_cgal_program( "Isosurfacing_3/benchmarks/benchmark.cpp" )
 
-if ( NOT CGAL_FOUND )
+option(ACTIVATE_CONCURRENCY "Enable concurrency" ON)
 
-  message(STATUS "This project requires the CGAL library, and will not be compiled.")
-  return()  
-
+if(ACTIVATE_CONCURRENCY)
+  find_package(TBB)
+  include(CGAL_TBB_support)
+  if(TARGET CGAL::TBB_support)
+    target_link_libraries(main PUBLIC CGAL::TBB_support)
+    target_link_libraries(benchmark PUBLIC CGAL::TBB_support)
+  endif()
 endif()
-
-
-# Boost and its components
-find_package( Boost REQUIRED )
-
-if ( NOT Boost_FOUND )
-
-  message(STATUS "This project requires the Boost library, and will not be compiled.")
-
-  return()  
-
-endif()
-
-# include for local directory
-
-# include for local package
 
 find_package(OpenMP)
-
-
-# Creating entries for target: Isosurfacing
-# ############################
-
-file(GLOB SOURCES Isosurfacing_3/*.h Isosurfacing_3/*/*.h Isosurfacing_3/*/*/*.h Isosurfacing_3/main.cpp)
-
-add_executable( Isosurfacing  ${SOURCES} )
-
-add_to_cached_list( CGAL_EXECUTABLE_TARGETS Isosurfacing )
-
-# Link the executable to CGAL and third-party libraries
-target_link_libraries( Isosurfacing PRIVATE CGAL::CGAL )
-
 if(OpenMP_CXX_FOUND)
-    target_link_libraries( Isosurfacing PRIVATE OpenMP::OpenMP_CXX )
+  target_link_libraries( main PRIVATE OpenMP::OpenMP_CXX )
+  target_link_libraries( benchmark PRIVATE OpenMP::OpenMP_CXX )
 endif()
 
 # enable all warnings
 if(MSVC)
-  target_compile_options(Isosurfacing PRIVATE /W4)
+  target_compile_options(main PRIVATE /W4)
 else()
-  target_compile_options(Isosurfacing PRIVATE -Wall -Wextra -pedantic)
+  target_compile_options(main PRIVATE -Wall -Wextra -pedantic)
 endif()
-
-
-# Creating entries for target: Benchmark
-# ############################
-
-file(GLOB SOURCES Isosurfacing_3/*.h Isosurfacing_3/*/*.h Isosurfacing_3/*/*/*.h Isosurfacing_3/benchmarks/benchmark.cpp)
-
-add_executable( Benchmark  ${SOURCES} )
-
-add_to_cached_list( CGAL_EXECUTABLE_TARGETS Benchmark )
-
-# Link the executable to CGAL and third-party libraries
-target_link_libraries( Benchmark PRIVATE CGAL::CGAL )
-
-if(OpenMP_CXX_FOUND)
-    target_link_libraries( Benchmark PRIVATE OpenMP::OpenMP_CXX )
-endif()
-
-# enable all warnings
-if(MSVC)
-  target_compile_options(Benchmark PRIVATE /W4)
-else()
-  target_compile_options(Benchmark PRIVATE -Wall -Wextra -pedantic)
-endif()
-

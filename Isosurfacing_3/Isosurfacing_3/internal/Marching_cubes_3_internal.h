@@ -2,7 +2,6 @@
 #define CGAL_MARCHING_CUBES_3_INTERNAL_MARCHING_CUBES_3_H
 
 #include <array>
-#include <iostream>
 #include <map>
 #include <mutex>
 
@@ -25,7 +24,7 @@ Point_3 vertex_interpolation(const Point_3& p0, const Point_3& p1, const FT d0, 
         mu = (iso_value - d0) / (d1 - d0);
     }
 
-    assert(mu < 0.0 || mu > 1.0);
+    assert(mu >= 0.0 || mu <= 1.0);
 
     // linear interpolation
     return Point_3(p1.x() * mu + p0.x() * (1 - mu), p1.y() * mu + p0.y() * (1 - mu), p1.z() * mu + p0.z() * (1 - mu));
@@ -273,13 +272,9 @@ public:
 
 
     void operator()(const Cell_handle& cell) {
-        // TODO: somehow doesn't work
+
         assert(domain.cell_vertices(cell).size() == 8);
         assert(domain.cell_edges(cell).size() == 12);
-
-        // Index indicating the position in vertex array, used final shared vertex list.
-        // there can be at most 12 intersections
-        std::array<std::size_t, 12> vertices;
 
         // slice hex
         // collect function values and build index
@@ -304,6 +299,15 @@ public:
         // collect edges from table and
         // interpolate triangle vertex positon
         const int i_case = int(index.to_ullong());
+
+        if (Cube_table::intersected_edges[i_case] == 0 || Cube_table::intersected_edges[i_case] == 0b11111111) {
+            return;
+        }
+
+        // Index indicating the position in vertex array, used final shared vertex list.
+        // there can be at most 12 intersections
+        std::array<Point, 12> vertices;
+
         // compute for this case the vertices
         ushort flag = 1;
         int e_id = 0;
@@ -316,44 +320,38 @@ public:
                 const int v0 = Cube_table::edge_to_vertex[e_id][0];
                 const int v1 = Cube_table::edge_to_vertex[e_id][1];
 
-                const Point position =
-                    vertex_interpolation(corners[v0], corners[v1], values[v0], values[v1], iso_value);
-
-                // std::lock_guard<std::mutex> lock(mutex);
-                // set vertex index
-                // const auto s_index = vertex_map.find(edge);
-                // if (s_index == vertex_map.end()) {
-                // index not found! Add index to hash map
-                const std::size_t g_idx = points.size();
-                // vertex_map[edge] = g_idx;
-                vertices[e_id] = g_idx;
-                points.push_back(position);
-                //} else {
-                //    vertices[e_id] = s_index->second;  // this is vertex global index g_idx
-                //}
+                vertices[e_id] = vertex_interpolation(corners[v0], corners[v1], values[v0], values[v1], iso_value);
             }
             flag <<= 1;
             e_id++;
         }
 
-        // std::lock_guard<std::mutex> lock(mutex);
+        std::lock_guard<std::mutex> lock(mutex);
+
         // construct triangles
         for (int t = 0; t < 16; t += 3) {
+
             const int t_index = i_case * 16 + t;
             // if (e_tris_list[t_index] == 0x7f)
             if (Cube_table::triangle_cases[t_index] == -1) break;
 
-            const int eg0 = Cube_table::triangle_cases[t_index];
+            const int eg0 = Cube_table::triangle_cases[t_index + 0];
             const int eg1 = Cube_table::triangle_cases[t_index + 1];
             const int eg2 = Cube_table::triangle_cases[t_index + 2];
+
+            const std::size_t p0_idx = points.size();  // TODO: not allowed
+
+            points.push_back(vertices[eg0]);
+            points.push_back(vertices[eg1]);
+            points.push_back(vertices[eg2]);
 
             // insert new triangle in list
             polygons.push_back({});
             auto& triangle = polygons.back();
 
-            triangle.push_back(vertices[eg0]);
-            triangle.push_back(vertices[eg1]);
-            triangle.push_back(vertices[eg2]);
+            triangle.push_back(p0_idx + 2);
+            triangle.push_back(p0_idx + 1);
+            triangle.push_back(p0_idx + 0);
         }
     }
 
@@ -367,6 +365,8 @@ private:
     // compute a unique global index for vertices
     // use as key the unique edge number
     std::map<Edge_handle, std::size_t> vertex_map;
+
+    std::mutex mutex;
 };
 
 }  // namespace internal
