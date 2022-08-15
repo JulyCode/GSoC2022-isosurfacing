@@ -3,6 +3,7 @@
 
 #include <array>
 #include <iostream>
+#include <map>
 #include <mutex>
 
 #include "Tables.h"
@@ -15,7 +16,7 @@ namespace internal {
 template <class Point_3, typename FT>
 Point_3 vertex_interpolation(const Point_3& p0, const Point_3& p1, const FT d0, const FT d1, const FT iso_value) {
 
-    FT mu = -1.0;
+    FT mu;
 
     // don't divide by 0
     if (abs(d1 - d0) < 0.000001) {
@@ -24,9 +25,7 @@ Point_3 vertex_interpolation(const Point_3& p0, const Point_3& p1, const FT d0, 
         mu = (iso_value - d0) / (d1 - d0);
     }
 
-    if (mu < 0.0 || mu > 1.0) {
-        std::cerr << "ERROR: isolevel is not between points\n" << std::endl;  // TODO: error handling
-    }
+    assert(mu < 0.0 || mu > 1.0);
 
     // linear interpolation
     return Point_3(p1.x() * mu + p0.x() * (1 - mu), p1.y() * mu + p0.y() * (1 - mu), p1.z() * mu + p0.z() * (1 - mu));
@@ -200,17 +199,17 @@ void marching_cubes_cell_RG(const std::size_t x, const std::size_t y, const std:
     // compute for this case the vertices
     ushort flag = 1;
     for (int edge = 0; edge < 12; edge++) {
-        if (flag & e_pattern[i_case]) {
+        if (flag & Cube_table::intersected_edges[i_case]) {
             // the edge global index is given by the vertex global index + the edge offset
-            const std::size_t ix = x + global_edge_id[edge][0];
-            const std::size_t iy = y + global_edge_id[edge][1];
-            const std::size_t iz = z + global_edge_id[edge][2];
+            const std::size_t ix = x + Cube_table::global_edge_id[edge][0];
+            const std::size_t iy = y + Cube_table::global_edge_id[edge][1];
+            const std::size_t iz = z + Cube_table::global_edge_id[edge][2];
             const std::size_t global_index = (iz * domain.size_y() * domain.size_x() + iy * domain.size_x() + ix);
-            vertices[edge].g_edg = cell_shift_factor * global_index + global_edge_id[edge][3];
+            vertices[edge].g_edg = cell_shift_factor * global_index + Cube_table::global_edge_id[edge][3];
             // generate vertex here, do not care at this point if vertex already exist
             // interpolation weight
-            const int v0 = l_edges[edge][0];
-            const int v1 = l_edges[edge][1];
+            const int v0 = Cube_table::edge_to_vertex[edge][0];
+            const int v1 = Cube_table::edge_to_vertex[edge][1];
             const FT l = (iso_value - values[v0]) / (values[v1] - values[v0]);
             // interpolate vertex
             const FT px = (1 - l) * corners[v0][0] + l * corners[v1][0];
@@ -239,11 +238,11 @@ void marching_cubes_cell_RG(const std::size_t x, const std::size_t y, const std:
     for (int t = 0; t < 16; t += 3) {
         const int t_index = i_case * 16 + t;
         // if (e_tris_list[t_index] == 0x7f)
-        if (t_pattern[t_index] == -1) break;
+        if (Cube_table::triangle_cases[t_index] == -1) break;
 
-        const int eg0 = t_pattern[t_index];
-        const int eg1 = t_pattern[t_index + 1];
-        const int eg2 = t_pattern[t_index + 2];
+        const int eg0 = Cube_table::triangle_cases[t_index];
+        const int eg1 = Cube_table::triangle_cases[t_index + 1];
+        const int eg2 = Cube_table::triangle_cases[t_index + 2];
 
         // insert new triangle in list
         polygons.push_back({});
@@ -254,6 +253,121 @@ void marching_cubes_cell_RG(const std::size_t x, const std::size_t y, const std:
         triangle.push_back(vertices[eg2].g_idx);
     }
 }
+
+template <class Domain_, class PointRange, class PolygonRange>
+class Marching_cubes_RG2 {
+private:
+    typedef Domain_ Domain;
+    typedef PointRange Point_range;
+    typedef PolygonRange Polygon_range;
+
+    typedef typename Domain::FT FT;
+    typedef typename Domain::Point_3 Point;
+    typedef typename Domain::Vertex_handle Vertex_handle;
+    typedef typename Domain::Edge_handle Edge_handle;
+    typedef typename Domain::Cell_handle Cell_handle;
+
+public:
+    Marching_cubes_RG2(const Domain& domain, const FT iso_value, Point_range& points, Polygon_range& polygons)
+        : domain(domain), iso_value(iso_value), points(points), polygons(polygons) {}
+
+
+    void operator()(const Cell_handle& cell) {
+        // TODO: somehow doesn't work
+        assert(domain.cell_vertices(cell).size() == 8);
+        assert(domain.cell_edges(cell).size() == 12);
+
+        // Index indicating the position in vertex array, used final shared vertex list.
+        // there can be at most 12 intersections
+        std::array<std::size_t, 12> vertices;
+
+        // slice hex
+        // collect function values and build index
+        FT values[8];
+        Point corners[8];
+
+        int v_id = 0;
+        std::bitset<8> index = 0;
+        for (const Vertex_handle& v : domain.cell_vertices(cell)) {
+            // collect scalar values and computex index
+            corners[v_id] = domain.position(v);
+            values[v_id] = domain.value(v);
+
+            if (values[v_id] >= iso_value) {
+                // index.set(VertexMapping[vi]);
+                index.set(v_id);
+            }
+            // next cell vertex
+            v_id++;
+        }
+
+        // collect edges from table and
+        // interpolate triangle vertex positon
+        const int i_case = int(index.to_ullong());
+        // compute for this case the vertices
+        ushort flag = 1;
+        int e_id = 0;
+        // for (const Edge_handle& edge : domain.cell_edges(cell)) {
+        for (e_id = 0; e_id < 12;) {
+            if (flag & Cube_table::intersected_edges[i_case]) {
+
+                // generate vertex here, do not care at this point if vertex already exist
+                // interpolation weight
+                const int v0 = Cube_table::edge_to_vertex[e_id][0];
+                const int v1 = Cube_table::edge_to_vertex[e_id][1];
+
+                const Point position =
+                    vertex_interpolation(corners[v0], corners[v1], values[v0], values[v1], iso_value);
+
+                // std::lock_guard<std::mutex> lock(mutex);
+                // set vertex index
+                // const auto s_index = vertex_map.find(edge);
+                // if (s_index == vertex_map.end()) {
+                // index not found! Add index to hash map
+                const std::size_t g_idx = points.size();
+                // vertex_map[edge] = g_idx;
+                vertices[e_id] = g_idx;
+                points.push_back(position);
+                //} else {
+                //    vertices[e_id] = s_index->second;  // this is vertex global index g_idx
+                //}
+            }
+            flag <<= 1;
+            e_id++;
+        }
+
+        // std::lock_guard<std::mutex> lock(mutex);
+        // construct triangles
+        for (int t = 0; t < 16; t += 3) {
+            const int t_index = i_case * 16 + t;
+            // if (e_tris_list[t_index] == 0x7f)
+            if (Cube_table::triangle_cases[t_index] == -1) break;
+
+            const int eg0 = Cube_table::triangle_cases[t_index];
+            const int eg1 = Cube_table::triangle_cases[t_index + 1];
+            const int eg2 = Cube_table::triangle_cases[t_index + 2];
+
+            // insert new triangle in list
+            polygons.push_back({});
+            auto& triangle = polygons.back();
+
+            triangle.push_back(vertices[eg0]);
+            triangle.push_back(vertices[eg1]);
+            triangle.push_back(vertices[eg2]);
+        }
+    }
+
+private:
+    const Domain& domain;
+    FT iso_value;
+
+    Point_range& points;
+    Polygon_range& polygons;
+
+    // compute a unique global index for vertices
+    // use as key the unique edge number
+    std::map<Edge_handle, std::size_t> vertex_map;
+};
 
 }  // namespace internal
 }  // namespace Isosurfacing

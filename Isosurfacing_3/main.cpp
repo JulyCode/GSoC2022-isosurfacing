@@ -9,6 +9,7 @@
 
 #include "Cartesian_grid_3.h"
 #include "Cartesian_grid_domain.h"
+#include "Cartesian_grid_domain2.h"
 #include "Implicit_domain.h"
 #include "Marching_cubes_3.h"
 #include "Timer.h"
@@ -31,40 +32,40 @@ int main() {
                                                                              Vector_3(0.002f, 0.002f, 0.002f));
 
 
-    // Grid grid(implicit_domain.size_x(), implicit_domain.size_y(), implicit_domain.size_z(), {-1, -1, -1, 1, 1, 1});
+    Grid grid(implicit_domain.size_x(), implicit_domain.size_y(), implicit_domain.size_z(), {-1, -1, -1, 1, 1, 1});
 
-    // for (std::size_t x = 0; x < grid.xdim(); x++) {
-    //     for (std::size_t y = 0; y < grid.ydim(); y++) {
-    //         for (std::size_t z = 0; z < grid.zdim(); z++) {
+    for (std::size_t x = 0; x < grid.xdim(); x++) {
+        for (std::size_t y = 0; y < grid.ydim(); y++) {
+            for (std::size_t z = 0; z < grid.zdim(); z++) {
 
-    //             grid.value(x, y, z) = implicit_domain.value(x, y, z);
-    //         }
-    //     }
-    // }
+                grid.value(x, y, z) = implicit_domain.value(x, y, z);
+            }
+        }
+    }
 
     const std::string fname = "../images/skull_2.9.inr";
     // Load image
-    CGAL::Image_3 image;
-    if (!image.read(fname)) {
-        std::cerr << "Error: Cannot read file " << fname << std::endl;
-        return EXIT_FAILURE;
-    }
-    Grid grid(image);
-
-    CGAL::Cartesian_grid_domain<Kernel> grid_domain(grid);
+    // CGAL::Image_3 image;
+    // if (!image.read(fname)) {
+    //    std::cerr << "Error: Cannot read file " << fname << std::endl;
+    //    return EXIT_FAILURE;
+    //}
+    // Grid grid(image);
+    //
+    CGAL::Isosurfacing::Cartesian_grid_domain2<Kernel> grid_domain(grid);
 
     Point_range points;
     Polygon_range polygons;
 
     {
         ScopeTimer timer;
-        CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes(implicit_domain, 0.8f, points, polygons);
+        CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes2(grid_domain, 0.8f, points, polygons);
     }
 
     // TODO: compare results with mesh_3
 
     Mesh mesh;
-    CGAL::Polygon_mesh_processing::polygon_soup_to_polygon_mesh(points, polygons, mesh);
+    // CGAL::Polygon_mesh_processing::polygon_soup_to_polygon_mesh(points, polygons, mesh);
 
-    CGAL::IO::write_OFF("result.off", mesh);
+    // CGAL::IO::write_OFF("result.off", mesh);
 }
