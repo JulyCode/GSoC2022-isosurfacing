@@ -13,6 +13,7 @@ public:
     typedef GeomTraits Geom_traits;
     typedef typename Geom_traits::FT FT;
     typedef typename Geom_traits::Point_3 Point_3;
+    typedef typename Geom_traits::Vector_3 Vector_3;
 
     typedef std::array<std::size_t, 3> Vertex_handle;
     typedef std::array<std::size_t, 4> Edge_handle;
@@ -34,22 +35,34 @@ public:
         return Point_3(v[0] * vx + grid->offset_x(), v[1] * vy + grid->offset_y(), v[2] * vz + grid->offset_z());
     }
 
+    Vector_3 gradient(const Vertex_handle& v) const {
+        const FT vx = grid->voxel_x();
+        const FT vy = grid->voxel_y();
+        const FT vz = grid->voxel_z();
+
+        Vector_3 g(v[0] * vx + grid->offset_x(), v[1] * vy + grid->offset_y(), v[2] * vz + grid->offset_z());
+        return g / std::sqrt(g.squared_length());
+    }
+
     FT value(const Vertex_handle& v) const {
         return grid->value(v[0], v[1], v[2]);
     }
 
     Edge_vertices edge_vertices(const Edge_handle& e) const {
-        Edge_vertices ev = {{e[0], e[1], e[2]}, {e[0], e[1], e[2]}};
+        Edge_vertices ev;
+        ev[0] = {e[0], e[1], e[2]};
+        ev[1] = {e[0], e[1], e[2]};
         ev[1][e[3]] += 1;
         return ev;
     }
 
     Cells_incident_to_edge cells_incident_to_edge(const Edge_handle& e) const {
-        auto neighbors = internal::Cube_table::edge_to_voxel_neighbor[e[3]];
+        const int local = internal::Cube_table::edge_store_index[e[3]];
+        auto neighbors = internal::Cube_table::edge_to_voxel_neighbor[local];
 
         Cells_incident_to_edge cite;
-        for (int i = 0; i < cite.size(); i++) {
-            for (int j = 0; j < cite[i].size(); j++) {
+        for (std::size_t i = 0; i < cite.size(); i++) {
+            for (std::size_t j = 0; j < cite[i].size(); j++) {
                 cite[i][j] = e[j] + neighbors[i][j];
             }
         }
@@ -58,8 +71,8 @@ public:
 
     Cell_vertices cell_vertices(const Cell_handle& v) const {
         Cell_vertices cv;
-        for (int i = 0; i < cv.size(); i++) {
-            for (int j = 0; j < v.size(); j++) {
+        for (std::size_t i = 0; i < cv.size(); i++) {
+            for (std::size_t j = 0; j < v.size(); j++) {
                 cv[i][j] = v[j] + internal::Cube_table::local_vertex_position[i][j];
             }
         }
@@ -68,8 +81,8 @@ public:
 
     Cell_edges cell_edges(const Cell_handle& v) const {
         Cell_edges ce;
-        for (int i = 0; i < ce.size(); i++) {
-            for (int j = 0; j < v.size(); j++) {
+        for (std::size_t i = 0; i < ce.size(); i++) {
+            for (std::size_t j = 0; j < v.size(); j++) {
                 ce[i][j] = v[j] + internal::Cube_table::global_edge_id[i][j];
             }
             ce[i][3] = internal::Cube_table::global_edge_id[i][3];
