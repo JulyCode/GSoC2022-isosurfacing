@@ -47,7 +47,7 @@ int64_t implicit_sphere(const std::size_t N) {
     Polygon_range polygons;
 
     ScopeTimer timer;
-    CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes(sphere_oracle, 0.8f, points, polygons);
+    CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes_old(sphere_oracle, 0.8f, points, polygons);
 
     const int64_t ms = timer.stop();
 
@@ -82,7 +82,7 @@ int64_t grid_sphere(const std::size_t N) {
     Polygon_range polygons;
 
     ScopeTimer timer;
-    CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes(grid_oracle, 0.8f, points, polygons);
+    CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes_old(grid_oracle, 0.8f, points, polygons);
 
     const int64_t ms = timer.stop();
 

@@ -9,8 +9,8 @@ namespace CGAL {
 namespace Isosurfacing {
 
 template <class Domain_, class PointRange, class PolygonRange>
-void make_triangle_mesh_using_marching_cubes(const Domain_& domain, const typename Domain_::FT iso_value,
-                                             PointRange& points, PolygonRange& polygons) {
+void make_triangle_mesh_using_marching_cubes_old(const Domain_& domain, const typename Domain_::FT iso_value,
+                                                 PointRange& points, PolygonRange& polygons) {
 
     std::mutex mutex;
 
@@ -36,6 +36,7 @@ void make_triangle_mesh_using_marching_cubes(const Domain_& domain, const typena
 
             for (std::size_t j = j_start; j < j_end; j++) {
                 for (std::size_t i = 0; i < size_i - 1; i++) {
+                    // internal::marching_cubes_cell_old(i, j, k, domain, iso_value, points, polygons, mutex);
                     internal::marching_cubes_cell_RG(i, j, k, domain, iso_value, points, polygons, mutex, v_map);
                 }
             }
@@ -44,10 +45,10 @@ void make_triangle_mesh_using_marching_cubes(const Domain_& domain, const typena
 }
 
 template <typename Concurrency_tag = Sequential_tag, class Domain_, class PointRange, class PolygonRange>
-void make_triangle_mesh_using_marching_cubes2(const Domain_& domain, const typename Domain_::FT iso_value,
-                                              PointRange& points, PolygonRange& polygons) {
+void make_triangle_mesh_using_marching_cubes(const Domain_& domain, const typename Domain_::FT iso_value,
+                                             PointRange& points, PolygonRange& polygons) {
 
-    internal::Marching_cubes_RG2<Domain_, PointRange, PolygonRange> functor(domain, iso_value, points, polygons);
+    internal::Marching_cubes_functor<Domain_, PointRange, PolygonRange> functor(domain, iso_value, points, polygons);
     domain.iterate_cells(functor, Concurrency_tag());
 }
 

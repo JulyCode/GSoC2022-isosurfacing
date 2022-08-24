@@ -13,6 +13,7 @@
 #include "Dual_contouring.h"
 #include "Implicit_domain.h"
 #include "Marching_cubes_3.h"
+#include "TC_marching_cubes_3.h"
 #include "Timer.h"
 
 typedef CGAL::Simple_cartesian<float> Kernel;
@@ -30,7 +31,7 @@ int main() {
         return std::sqrt(point.x() * point.x() + point.y() * point.y() + point.z() * point.z());
     };
     CGAL::Implicit_domain<Kernel, decltype(sphere_function)> implicit_domain(sphere_function, {-1, -1, -1, 1, 1, 1},
-                                                                             Vector_3(0.02f, 0.02f, 0.02f));
+                                                                             Vector_3(0.002f, 0.002f, 0.02f));
 
 
     Grid grid(implicit_domain.size_x(), implicit_domain.size_y(), implicit_domain.size_z(), {-1, -1, -1, 1, 1, 1});
@@ -60,7 +61,7 @@ int main() {
 
     {
         ScopeTimer timer;
-        CGAL::Isosurfacing::make_quad_mesh_using_dual_contouring_2(grid_domain, 0.8f, points, polygons);
+        CGAL::Isosurfacing::make_triangle_mesh_using_tmc(grid_domain, 0.8f, points, polygons);
     }
 
     // TODO: compare results with mesh_3

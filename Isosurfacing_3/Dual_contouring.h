@@ -8,9 +8,9 @@ namespace Isosurfacing {
 
 template <typename Concurrency_tag = Sequential_tag, class Domain_, class PointRange, class PolygonRange,
           class Positioning = internal::Positioning::QEM_SVD<false>>
-void make_quad_mesh_using_dual_contouring_2(const Domain_& domain, const typename Domain_::FT iso_value,
-                                            PointRange& points, PolygonRange& polygons,
-                                            const Positioning& positioning = Positioning()) {
+void make_quad_mesh_using_dual_contouring(const Domain_& domain, const typename Domain_::FT iso_value,
+                                          PointRange& points, PolygonRange& polygons,
+                                          const Positioning& positioning = Positioning()) {
 
     internal::Dual_contouring_position_functor<Domain_, Positioning> pos_func(domain, iso_value, positioning);
     domain.iterate_cells(pos_func, Concurrency_tag());

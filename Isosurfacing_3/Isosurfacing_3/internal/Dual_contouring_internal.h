@@ -126,7 +126,7 @@ public:
         }
 
         // bbox
-        if constexpr (use_bbox) {
+        if (use_bbox) {
             CGAL::Bbox_3 bbox = (CGAL::ORIGIN + pos[0]).bbox() + (CGAL::ORIGIN + pos[7]).bbox();
 
             FT x = std::min<FT>(std::max<FT>(point.x(), bbox.xmin()), bbox.xmax());
