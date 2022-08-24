@@ -35,3 +35,5 @@ if(MSVC)
 else()
   target_compile_options(main PRIVATE -Wall -Wextra -pedantic)
 endif()
+
+add_subdirectory(Isosurfacing_3/examples/Isosurfacing_3)
