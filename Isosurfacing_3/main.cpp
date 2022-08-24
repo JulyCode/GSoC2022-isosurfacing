@@ -2,17 +2,15 @@
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Surface_mesh.h>
 #include <CGAL/boost/graph/IO/OFF.h>
-#include <math.h>
-
-#include <fstream>
-#include <iostream>
 
 #include "Cartesian_grid_3.h"
 #include "Cartesian_grid_domain.h"
-#include "Cartesian_grid_domain2.h"
+#include "Cartesian_grid_domain_old.h"
 #include "Dual_contouring.h"
 #include "Implicit_domain.h"
+#include "Implicit_domain_old.h"
 #include "Marching_cubes_3.h"
+#include "Octree_wrapper.h"
 #include "TC_marching_cubes_3.h"
 #include "Timer.h"
 
@@ -27,20 +25,26 @@ typedef std::vector<Point_3> Point_range;
 typedef std::vector<std::vector<std::size_t>> Polygon_range;
 
 int main() {
+    const Vector_3 spacing(0.02f, 0.02f, 0.02f);
+    const CGAL::Bbox_3 bbox = {-1, -1, -1, 1, 1, 1};
+
     auto sphere_function = [](const Point_3& point) {
         return std::sqrt(point.x() * point.x() + point.y() * point.y() + point.z() * point.z());
     };
-    CGAL::Implicit_domain<Kernel, decltype(sphere_function)> implicit_domain(sphere_function, {-1, -1, -1, 1, 1, 1},
-                                                                             Vector_3(0.002f, 0.002f, 0.02f));
+    CGAL::Isosurfacing::Implicit_domain<Kernel, decltype(sphere_function)> implicit_domain(sphere_function, bbox,
+                                                                                           spacing);
 
 
-    Grid grid(implicit_domain.size_x(), implicit_domain.size_y(), implicit_domain.size_z(), {-1, -1, -1, 1, 1, 1});
+    Grid grid(2.f / spacing.x(), 2.f / spacing.y(), 2.f / spacing.z(), bbox);
 
     for (std::size_t x = 0; x < grid.xdim(); x++) {
         for (std::size_t y = 0; y < grid.ydim(); y++) {
             for (std::size_t z = 0; z < grid.zdim(); z++) {
 
-                grid.value(x, y, z) = implicit_domain.value(x, y, z);
+                const Point_3 pos(x * spacing.x() + bbox.xmin(), y * spacing.y() + bbox.ymin(),
+                                  z * spacing.z() + bbox.zmin());
+
+                grid.value(x, y, z) = sphere_function(pos);
             }
         }
     }
@@ -54,7 +58,7 @@ int main() {
     //}
     // Grid grid(image);
     //
-    CGAL::Isosurfacing::Cartesian_grid_domain2<Kernel> grid_domain(grid);
+    CGAL::Isosurfacing::Cartesian_grid_domain<Kernel> grid_domain(grid);
 
     Point_range points;
     Polygon_range polygons;

@@ -40,8 +40,8 @@ int64_t implicit_sphere(const std::size_t N) {
         }
     };
 
-    auto sphere_oracle =
-        create_implicit_domain(SphereFunction(), {-1, -1, -1, 1, 1, 1}, Vector_3(resolution, resolution, resolution));
+    auto sphere_oracle = CGAL::Isosurfacing::create_implicit_domain(SphereFunction(), {-1, -1, -1, 1, 1, 1},
+                                                                    Vector_3(resolution, resolution, resolution));
 
     Point_range points;
     Polygon_range polygons;
@@ -76,7 +76,7 @@ int64_t grid_sphere(const std::size_t N) {
             }
         }
     }
-    CGAL::Cartesian_grid_domain<Kernel> grid_oracle(grid);
+    CGAL::Isosurfacing::Cartesian_grid_domain<Kernel> grid_oracle(grid);
 
     Point_range points;
     Polygon_range polygons;
