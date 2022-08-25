@@ -60,21 +60,21 @@ public:
     }
 
     template <typename Functor>
-    void iterate_vertices(Functor& f, Sequential_tag) const {
+    void iterate_vertices(Functor& f, Sequential_tag = Sequential_tag()) const {
         for (const Vertex_handle& v : octree_->leaf_vertices()) {
             f(v);
         }
     }
 
     template <typename Functor>
-    void iterate_edges(Functor& f, Sequential_tag) const {
+    void iterate_edges(Functor& f, Sequential_tag = Sequential_tag()) const {
         for (const Edge_handle& e : octree_->leaf_edges()) {
             f(e);
         }
     }
 
     template <typename Functor>
-    void iterate_cells(Functor& f, Sequential_tag) const {
+    void iterate_cells(Functor& f, Sequential_tag = Sequential_tag()) const {
         for (const Cell_handle& v : octree_->leaf_voxels()) {
             f(v);
         }

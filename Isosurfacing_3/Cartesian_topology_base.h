@@ -68,9 +68,9 @@ protected:
     void iterate_vertices_base(Functor& f, Sequential_tag, const std::size_t size_x, const std::size_t size_y,
                                const std::size_t size_z) const {
 
-        for (std::size_t x = 0; x < size_x - 1; x++) {
-            for (std::size_t y = 0; y < size_y - 1; y++) {
-                for (std::size_t z = 0; z < size_z - 1; z++) {
+        for (std::size_t x = 0; x < size_x; x++) {
+            for (std::size_t y = 0; y < size_y; y++) {
+                for (std::size_t z = 0; z < size_z; z++) {
                     f({x, y, z});
                 }
             }

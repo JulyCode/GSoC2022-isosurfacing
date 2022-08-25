@@ -43,17 +43,17 @@ public:
     }
 
     template <typename Functor>
-    void iterate_vertices(Functor& f, Sequential_tag tag) const {
+    void iterate_vertices(Functor& f, Sequential_tag tag = Sequential_tag()) const {
         iterate_vertices_base(f, tag, grid->xdim(), grid->ydim(), grid->zdim());
     }
 
     template <typename Functor>
-    void iterate_edges(Functor& f, Sequential_tag tag) const {
+    void iterate_edges(Functor& f, Sequential_tag tag = Sequential_tag()) const {
         iterate_edges_base(f, tag, grid->xdim(), grid->ydim(), grid->zdim());
     }
 
     template <typename Functor>
-    void iterate_cells(Functor& f, Sequential_tag tag) const {
+    void iterate_cells(Functor& f, Sequential_tag tag = Sequential_tag()) const {
         iterate_cells_base(f, tag, grid->xdim(), grid->ydim(), grid->zdim());
     }
 
@@ -66,15 +66,15 @@ public:
 
         auto iterator = [=, &f](const tbb::blocked_range<std::size_t>& r) {
             for (std::size_t x = r.begin(); x != r.end(); x++) {
-                for (std::size_t y = 0; y < size_y - 1; y++) {
-                    for (std::size_t z = 0; z < size_z - 1; z++) {
+                for (std::size_t y = 0; y < size_y; y++) {
+                    for (std::size_t z = 0; z < size_z; z++) {
                         f({x, y, z});
                     }
                 }
             }
         };
 
-        tbb::parallel_for(tbb::blocked_range<std::size_t>(0, size_x - 1), iterator);
+        tbb::parallel_for(tbb::blocked_range<std::size_t>(0, size_x), iterator);
     }
 
     template <typename Functor>
