@@ -15,20 +15,20 @@
 #include "Timer.h"
 
 typedef CGAL::Simple_cartesian<float> Kernel;
-typedef typename Kernel::Vector_3 Vector_3;
-typedef typename Kernel::Point_3 Point_3;
+typedef typename Kernel::Vector_3 Vector;
+typedef typename Kernel::Point_3 Point;
 
-typedef CGAL::Surface_mesh<Point_3> Mesh;
+typedef CGAL::Surface_mesh<Point> Mesh;
 typedef CGAL::Cartesian_grid_3<Kernel> Grid;
 
-typedef std::vector<Point_3> Point_range;
+typedef std::vector<Point> Point_range;
 typedef std::vector<std::vector<std::size_t>> Polygon_range;
 
 int main() {
-    const Vector_3 spacing(0.02f, 0.02f, 0.02f);
+    const Vector spacing(0.002f, 0.002f, 0.02f);
     const CGAL::Bbox_3 bbox = {-1, -1, -1, 1, 1, 1};
 
-    auto sphere_function = [](const Point_3& point) {
+    auto sphere_function = [](const Point& point) {
         return std::sqrt(point.x() * point.x() + point.y() * point.y() + point.z() * point.z());
     };
     CGAL::Isosurfacing::Implicit_domain<Kernel, decltype(sphere_function)> implicit_domain(sphere_function, bbox,
@@ -41,15 +41,15 @@ int main() {
         for (std::size_t y = 0; y < grid.ydim(); y++) {
             for (std::size_t z = 0; z < grid.zdim(); z++) {
 
-                const Point_3 pos(x * spacing.x() + bbox.xmin(), y * spacing.y() + bbox.ymin(),
-                                  z * spacing.z() + bbox.zmin());
+                const Point pos(x * spacing.x() + bbox.xmin(), y * spacing.y() + bbox.ymin(),
+                                z * spacing.z() + bbox.zmin());
 
                 grid.value(x, y, z) = sphere_function(pos);
             }
         }
     }
 
-    const std::string fname = "../images/skull_2.9.inr";
+    const std::string fname = "../data/skull_2.9.inr";
     // Load image
     // CGAL::Image_3 image;
     // if (!image.read(fname)) {
@@ -57,7 +57,7 @@ int main() {
     //    return EXIT_FAILURE;
     //}
     // Grid grid(image);
-    //
+
     CGAL::Isosurfacing::Cartesian_grid_domain<Kernel> grid_domain(grid);
 
     Point_range points;
@@ -65,7 +65,8 @@ int main() {
 
     {
         ScopeTimer timer;
-        CGAL::Isosurfacing::make_triangle_mesh_using_tmc(grid_domain, 0.8f, points, polygons);
+        CGAL::Isosurfacing::make_quad_mesh_using_dual_contouring<CGAL::Parallel_tag>(grid_domain, 0.8f, points,
+                                                                                     polygons);
     }
 
     // TODO: compare results with mesh_3

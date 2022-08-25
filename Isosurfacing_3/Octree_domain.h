@@ -15,8 +15,8 @@ class Octree_domain {
 public:
     typedef GeomTraits Geom_traits;
     typedef typename Geom_traits::FT FT;
-    typedef typename Geom_traits::Point_3 Point_3;
-    typedef typename Geom_traits::Vector_3 Vector_3;
+    typedef typename Geom_traits::Point_3 Point;
+    typedef typename Geom_traits::Vector_3 Vector;
 
     typedef Octree_wrapper<Geom_traits> Octree;
     typedef typename Octree::Vertex_handle Vertex_handle;
@@ -31,11 +31,11 @@ public:
 public:
     Octree_domain(const Octree& octree) : octree_(&octree) {}
 
-    Point_3 position(const Vertex_handle& v) const {
+    Point position(const Vertex_handle& v) const {
         return octree_->point(v);
     }
 
-    Vector_3 gradient(const Vertex_handle& v) const {
+    Vector gradient(const Vertex_handle& v) const {
         return octree_->gradient(v);
     }
 

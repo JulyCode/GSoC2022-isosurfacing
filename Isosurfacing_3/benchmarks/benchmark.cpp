@@ -17,13 +17,13 @@
 
 typedef CGAL::Simple_cartesian<double> Kernel;
 typedef typename Kernel::FT FT;
-typedef typename Kernel::Vector_3 Vector_3;
-typedef typename Kernel::Point_3 Point_3;
+typedef typename Kernel::Vector_3 Vector;
+typedef typename Kernel::Point_3 Point;
 
-typedef CGAL::Surface_mesh<Point_3> Mesh;
+typedef CGAL::Surface_mesh<Point> Mesh;
 typedef CGAL::Cartesian_grid_3<Kernel> Grid;
 
-typedef std::vector<Point_3> Point_range;
+typedef std::vector<Point> Point_range;
 typedef std::vector<std::vector<std::size_t>> Polygon_range;
 
 
@@ -33,21 +33,21 @@ int64_t implicit_sphere(const std::size_t N) {
     struct SphereFunction {
         typedef Kernel Geom_traits;
         typedef typename Geom_traits::FT FT;
-        typedef typename Geom_traits::Point_3 Point_3;
+        typedef typename Geom_traits::Point_3 Point;
 
-        FT operator()(const Point_3& point) const {
+        FT operator()(const Point& point) const {
             return std::sqrt(point.x() * point.x() + point.y() * point.y() + point.z() * point.z());
         }
     };
 
-    auto sphere_oracle = CGAL::Isosurfacing::create_implicit_domain(SphereFunction(), {-1, -1, -1, 1, 1, 1},
-                                                                    Vector_3(resolution, resolution, resolution));
+    auto domain = CGAL::Isosurfacing::create_implicit_domain(SphereFunction(), {-1, -1, -1, 1, 1, 1},
+                                                             Vector(resolution, resolution, resolution));
 
     Point_range points;
     Polygon_range polygons;
 
     ScopeTimer timer;
-    CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes_old(sphere_oracle, 0.8f, points, polygons);
+    CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes(domain, 0.8f, points, polygons);
 
     const int64_t ms = timer.stop();
 
@@ -76,13 +76,13 @@ int64_t grid_sphere(const std::size_t N) {
             }
         }
     }
-    CGAL::Isosurfacing::Cartesian_grid_domain<Kernel> grid_oracle(grid);
+    CGAL::Isosurfacing::Cartesian_grid_domain<Kernel> domain(grid);
 
     Point_range points;
     Polygon_range polygons;
 
     ScopeTimer timer;
-    CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes_old(grid_oracle, 0.8f, points, polygons);
+    CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes(domain, 0.8f, points, polygons);
 
     const int64_t ms = timer.stop();
 

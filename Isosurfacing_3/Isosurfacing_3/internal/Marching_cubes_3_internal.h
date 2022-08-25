@@ -63,6 +63,8 @@ void mc_construct_vertices(const CellEdges& cell_edges, const FT iso_value, cons
     std::size_t e_id = 0;
 
     for (const auto& edge : cell_edges) {
+        (void)edge;  // TODO
+
         if (flag & Cube_table::intersected_edges[i_case]) {
 
             // generate vertex here, do not care at this point if vertex already exist
@@ -337,7 +339,7 @@ private:
     typedef PolygonRange Polygon_range;
 
     typedef typename Domain::FT FT;
-    typedef typename Domain::Point_3 Point;
+    typedef typename Domain::Point Point;
     typedef typename Domain::Vertex_handle Vertex_handle;
     typedef typename Domain::Edge_handle Edge_handle;
     typedef typename Domain::Cell_handle Cell_handle;

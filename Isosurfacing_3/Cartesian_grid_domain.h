@@ -15,26 +15,26 @@ class Cartesian_grid_domain : public Cartesian_topology_base {
 public:
     typedef GeomTraits Geom_traits;
     typedef typename Geom_traits::FT FT;
-    typedef typename Geom_traits::Point_3 Point_3;
-    typedef typename Geom_traits::Vector_3 Vector_3;
+    typedef typename Geom_traits::Point_3 Point;
+    typedef typename Geom_traits::Vector_3 Vector;
 
 public:
     Cartesian_grid_domain(const Cartesian_grid_3<Geom_traits>& grid) : grid(&grid) {}
 
-    Point_3 position(const Vertex_handle& v) const {
+    Point position(const Vertex_handle& v) const {
         const FT vx = grid->voxel_x();
         const FT vy = grid->voxel_y();
         const FT vz = grid->voxel_z();
 
-        return Point_3(v[0] * vx + grid->offset_x(), v[1] * vy + grid->offset_y(), v[2] * vz + grid->offset_z());
+        return Point(v[0] * vx + grid->offset_x(), v[1] * vy + grid->offset_y(), v[2] * vz + grid->offset_z());
     }
 
-    Vector_3 gradient(const Vertex_handle& v) const {
+    Vector gradient(const Vertex_handle& v) const {
         const FT vx = grid->voxel_x();
         const FT vy = grid->voxel_y();
         const FT vz = grid->voxel_z();
 
-        Vector_3 g(v[0] * vx + grid->offset_x(), v[1] * vy + grid->offset_y(), v[2] * vz + grid->offset_z());
+        Vector g(v[0] * vx + grid->offset_x(), v[1] * vy + grid->offset_y(), v[2] * vz + grid->offset_z());
         return g / std::sqrt(g.squared_length());
     }
 

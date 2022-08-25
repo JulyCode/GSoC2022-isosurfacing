@@ -28,9 +28,9 @@ public:
     /// <returns> true, if there is a point in the cell</returns>
     template <class Domain_>
     bool position(const Domain_& domain, const typename Domain_::FT iso_value, const typename Domain_::Cell_handle& vh,
-                  typename Domain_::Point_3& point) const {
-        typedef typename Domain_::Point_3 Point_3;
-        typedef typename Domain_::Geom_traits::Vector_3 Vector_3;
+                  typename Domain_::Point& point) const {
+        typedef typename Domain_::Point Point;
+        typedef typename Domain_::Geom_traits::Vector_3 Vector;
         typedef typename Domain_::FT FT;
 
         typename Domain_::Cell_vertices vertices = domain.cell_vertices(vh);
@@ -53,19 +53,19 @@ public:
             return false;
         }
 
-        std::array<Vector_3, Tables::N_VERTICES> pos;
+        std::array<Vector, Tables::N_VERTICES> pos;
         std::transform(vertices.begin(), vertices.end(), pos.begin(),
                        [&](const auto& v) { return domain.position(v) - CGAL::ORIGIN; });
 
         point = CGAL::ORIGIN + (pos[0] + 0.5 * (pos[7] - pos[0]));  // set point to voxel center
 
-        std::array<Vector_3, Tables::N_VERTICES> normals;
+        std::array<Vector, Tables::N_VERTICES> normals;
         std::transform(vertices.begin(), vertices.end(), normals.begin(),
                        [&](const auto& v) { return domain.gradient(v); });
 
         // compute edge intersections
-        std::vector<Point_3> edge_intersections;
-        std::vector<Vector_3> edge_intersection_normals;
+        std::vector<Point> edge_intersections;
+        std::vector<Vector> edge_intersection_normals;
 
         for (int i = 0; i < Tables::N_EDGES; ++i) {
             const auto& v0 = Tables::edge_to_vertex[i][0];
@@ -73,22 +73,22 @@ public:
 
             if (b[v0] != b[v1]) {  // e0
                 const FT u = (s[v0] - iso_value) / (s[v0] - s[v1]);
-                const Point_3 p_lerp = CGAL::ORIGIN + ((1 - u) * pos[v0] + u * pos[v1]);
+                const Point p_lerp = CGAL::ORIGIN + ((1 - u) * pos[v0] + u * pos[v1]);
                 edge_intersections.push_back(p_lerp);
-                const Vector_3 n_lerp = (1 - u) * normals[v0] + u * normals[v1];
+                const Vector n_lerp = (1 - u) * normals[v0] + u * normals[v1];
                 edge_intersection_normals.push_back(n_lerp);
             }
         }
 
         // MC Polygon Center of Mass
         if (false) {
-            Vector_3 com_vec(0, 0, 0);
+            Vector com_vec(0, 0, 0);
 
             for (int i = 0; i < edge_intersections.size(); ++i) {
                 com_vec += edge_intersections[i] - CGAL::ORIGIN;
             }
 
-            Point_3 p = CGAL::ORIGIN + com_vec / edge_intersections.size();
+            Point p = CGAL::ORIGIN + com_vec / edge_intersections.size();
             point = p;
         }
 
@@ -122,7 +122,7 @@ public:
             // Lindstrom formula for QEM new position for singular matrices
             Eigen::VectorXd v_svd = x_hat + svd.solve(b - A * x_hat);
 
-            point = Point_3(v_svd[0], v_svd[1], v_svd[2]);
+            point = Point(v_svd[0], v_svd[1], v_svd[2]);
         }
 
         // bbox
@@ -132,7 +132,7 @@ public:
             FT x = std::min<FT>(std::max<FT>(point.x(), bbox.xmin()), bbox.xmax());
             FT y = std::min<FT>(std::max<FT>(point.y(), bbox.ymin()), bbox.ymax());
             FT z = std::min<FT>(std::max<FT>(point.z(), bbox.zmin()), bbox.zmax());
-            point = Point_3(x, y, z);
+            point = Point(x, y, z);
         }
 
         return true;
@@ -153,9 +153,9 @@ public:
     /// <returns> true, if there is a point in the cell</returns>
     template <class Domain_>
     bool position(const Domain_& domain, const typename Domain_::FT iso_value, const typename Domain_::Cell_handle& vh,
-                  typename Domain_::Point_3& point) const {
-        typedef typename Domain_::Point_3 Point_3;
-        typedef typename Domain_::Vector_3 Vector_3;
+                  typename Domain_::Point& point) const {
+        typedef typename Domain_::Point Point;
+        typedef typename Domain_::Vector_3 Vector;
 
         namespace Tables = internal::Cube_table;
 
@@ -174,8 +174,8 @@ public:
             return false;
         }
 
-        std::array<Point_3, Tables::N_VERTICES> p = domain.voxel_vertex_positions(vh);
-        std::array<Vector_3, Tables::N_VERTICES> pos;
+        std::array<Point, Tables::N_VERTICES> p = domain.voxel_vertex_positions(vh);
+        std::array<Vector, Tables::N_VERTICES> pos;
         std::transform(p.begin(), p.end(), pos.begin(), [](const auto& e) { return e - CGAL::ORIGIN; });
 
         point = CGAL::ORIGIN + (pos[0] + 0.5 * (pos[7] - pos[0]));  // set point to voxel center
@@ -198,9 +198,9 @@ public:
     /// <returns> true, if there is a point in the cell</returns>
     template <class Domain_>
     bool position(const Domain_& domain, const typename Domain_::FT iso_value, const typename Domain_::Cell_handle& vh,
-                  typename Domain_::Point_3& point) const {
-        typedef typename Domain_::Point_3 Point_3;
-        typedef typename Domain_::Vector_3 Vector_3;
+                  typename Domain_::Point& point) const {
+        typedef typename Domain_::Point Point;
+        typedef typename Domain_::Vector_3 Vector;
         typedef typename Domain_::FT FT;
 
         namespace Tables = internal::Cube_table;
@@ -220,17 +220,17 @@ public:
             return false;
         }
 
-        std::array<Point_3, Tables::N_VERTICES> p = domain.voxel_vertex_positions(vh);
-        std::array<Vector_3, Tables::N_VERTICES> pos;
+        std::array<Point, Tables::N_VERTICES> p = domain.voxel_vertex_positions(vh);
+        std::array<Vector, Tables::N_VERTICES> pos;
         std::transform(p.begin(), p.end(), pos.begin(), [](const auto& e) { return e - CGAL::ORIGIN; });
 
         point = CGAL::ORIGIN + (pos[0] + 0.5 * (pos[7] - pos[0]));  // set point to voxel center
 
-        std::array<Vector_3, Tables::N_VERTICES> normals = domain.gradient(vh);
+        std::array<Vector, Tables::N_VERTICES> normals = domain.gradient(vh);
 
         // compute edge intersections
-        std::vector<Point_3> edge_intersections;
-        std::vector<Vector_3> edge_intersection_normals;
+        std::vector<Point> edge_intersections;
+        std::vector<Vector> edge_intersection_normals;
 
         for (int i = 0; i < Tables::N_EDGES; ++i) {
             const auto& v0 = Tables::edge_to_vertex[i][0];
@@ -238,15 +238,15 @@ public:
 
             if (b[v0] != b[v1]) {  // e0
                 const FT u = (s[v0] - iso_value) / (s[v0] - s[v1]);
-                const Point_3 p_lerp = CGAL::ORIGIN + ((1 - u) * pos[v0] + u * pos[v1]);
+                const Point p_lerp = CGAL::ORIGIN + ((1 - u) * pos[v0] + u * pos[v1]);
                 edge_intersections.push_back(p_lerp);
-                const Vector_3 n_lerp = (1 - u) * normals[v0] + u * normals[v1];
+                const Vector n_lerp = (1 - u) * normals[v0] + u * normals[v1];
                 edge_intersection_normals.push_back(n_lerp);
             }
         }
 
         // MC Polygon Center of Mass
-        Vector_3 com_vec(0, 0, 0);
+        Vector com_vec(0, 0, 0);
 
         for (int i = 0; i < edge_intersections.size(); ++i) {
             com_vec += edge_intersections[i] - CGAL::ORIGIN;
@@ -266,7 +266,7 @@ private:
     typedef Positioning_ Positioning;
 
     typedef typename Domain::FT FT;
-    typedef typename Domain::Point_3 Point_3;
+    typedef typename Domain::Point Point;
     typedef typename Domain::Cell_handle Cell_handle;
 
 public:
@@ -275,7 +275,7 @@ public:
 
     void operator()(const Cell_handle& v) {
         // compute dc-vertices
-        Point_3 p;
+        Point p;
         if (positioning.position(domain, iso_value, v, p)) {
 
             std::lock_guard<std::mutex> lock(mutex);
@@ -290,7 +290,7 @@ public:
     const Positioning& positioning;
 
     std::map<Cell_handle, std::size_t> map_voxel_to_point_id;
-    std::map<Cell_handle, Point_3> map_voxel_to_point;
+    std::map<Cell_handle, Point> map_voxel_to_point;
     std::size_t points_counter;
 
     std::mutex mutex;

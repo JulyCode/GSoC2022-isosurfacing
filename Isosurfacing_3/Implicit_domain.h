@@ -14,11 +14,11 @@ class Implicit_domain : public Cartesian_topology_base {
 public:
     typedef GeomTraits Geom_traits;
     typedef typename Geom_traits::FT FT;
-    typedef typename Geom_traits::Point_3 Point_3;
-    typedef typename Geom_traits::Vector_3 Vector_3;
+    typedef typename Geom_traits::Point_3 Point;
+    typedef typename Geom_traits::Vector_3 Grid_spacing;
 
 public:
-    Implicit_domain(const Function& func, const CGAL::Bbox_3& domain, const Vector_3& spacing)
+    Implicit_domain(const Function& func, const Bbox_3& domain, const Grid_spacing& spacing)
         : func(&func), bbox(domain), spacing(spacing) {
 
         sizes[0] = domain.x_span() / spacing.x();
@@ -26,9 +26,9 @@ public:
         sizes[2] = domain.z_span() / spacing.z();
     }
 
-    Point_3 position(const Vertex_handle& v) const {
-        return Point_3(v[0] * spacing.x() + bbox.xmin(), v[1] * spacing.y() + bbox.ymin(),
-                       v[2] * spacing.z() + bbox.zmin());
+    Point position(const Vertex_handle& v) const {
+        return Point(v[0] * spacing.x() + bbox.xmin(), v[1] * spacing.y() + bbox.ymin(),
+                     v[2] * spacing.z() + bbox.zmin());
     }
 
     FT value(const Vertex_handle& v) const {
@@ -115,7 +115,7 @@ private:
     const Function* func;
 
     Bbox_3 bbox;
-    Vector_3 spacing;
+    Grid_spacing spacing;
 
     std::array<std::size_t, 3> sizes;
 };
