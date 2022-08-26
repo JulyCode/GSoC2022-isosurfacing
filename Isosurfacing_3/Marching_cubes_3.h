@@ -4,6 +4,7 @@
 #include <mutex>
 
 #include "Isosurfacing_3/internal/Marching_cubes_3_internal.h"
+#include "Cell_type.h"
 
 namespace CGAL {
 namespace Isosurfacing {
@@ -47,6 +48,8 @@ void make_triangle_mesh_using_marching_cubes_old(const Domain_& domain, const ty
 template <typename Concurrency_tag = Sequential_tag, class Domain_, class PointRange, class PolygonRange>
 void make_triangle_mesh_using_marching_cubes(const Domain_& domain, const typename Domain_::FT iso_value,
                                              PointRange& points, PolygonRange& polygons) {
+
+    static_assert(Domain_::CELL_TYPE & CUBICAL_CELL);
 
     internal::Marching_cubes_functor<Domain_, PointRange, PolygonRange> functor(domain, iso_value, points, polygons);
     domain.iterate_cells(functor, Concurrency_tag());

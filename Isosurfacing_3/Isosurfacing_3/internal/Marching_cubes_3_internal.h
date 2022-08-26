@@ -38,7 +38,7 @@ std::size_t get_cell_corners(const Domain_& domain, const typename Domain_::Cell
 
     // collect function values and build index
     std::size_t v_id = 0;
-    std::bitset<8> index = 0;  // TODO: get size from domain
+    std::bitset<Domain_::VERTICES_PER_CELL> index = 0;  // TODO: get size from domain
     for (const Vertex_handle& v : domain.cell_vertices(cell)) {
         // collect scalar values and computex index
         corners[v_id] = domain.position(v);
@@ -359,7 +359,7 @@ public:
         const int i_case = get_cell_corners(domain, cell, iso_value, corners, values);
 
         const int all_bits_set = (1 << (8 + 1)) - 1;  // last 8 bits are 1
-        if (Cube_table::intersected_edges[i_case] == 0 || Cube_table::intersected_edges[i_case] == all_bits_set) {
+        if (i_case == 0 || i_case == all_bits_set) {
             return;
         }
 

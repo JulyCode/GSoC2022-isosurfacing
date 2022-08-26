@@ -20,34 +20,19 @@ typedef typename Kernel::FT FT;
 typedef typename Kernel::Vector_3 Vector;
 typedef typename Kernel::Point_3 Point;
 
-typedef CGAL::Surface_mesh<Point> Mesh;
 typedef CGAL::Cartesian_grid_3<Kernel> Grid;
 
 typedef std::vector<Point> Point_range;
 typedef std::vector<std::vector<std::size_t>> Polygon_range;
 
 
-int64_t implicit_sphere(const std::size_t N) {
-    const FT resolution = 2.0 / N;
-
-    struct SphereFunction {
-        typedef Kernel Geom_traits;
-        typedef typename Geom_traits::FT FT;
-        typedef typename Geom_traits::Point_3 Point;
-
-        FT operator()(const Point& point) const {
-            return std::sqrt(point.x() * point.x() + point.y() * point.y() + point.z() * point.z());
-        }
-    };
-
-    auto domain = CGAL::Isosurfacing::create_implicit_domain(SphereFunction(), {-1, -1, -1, 1, 1, 1},
-                                                             Vector(resolution, resolution, resolution));
-
+template<typename Function, class Domain_>
+int64_t run_func(Function func, const Domain_& domain, const typename Domain_::FT iso) {
     Point_range points;
     Polygon_range polygons;
 
     ScopeTimer timer;
-    CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes(domain, 0.8f, points, polygons);
+    func(domain, iso, points, polygons);
 
     const int64_t ms = timer.stop();
 
@@ -57,7 +42,26 @@ int64_t implicit_sphere(const std::size_t N) {
     return ms;
 }
 
-int64_t grid_sphere(const std::size_t N) {
+template<class Point_>
+struct SphereFunction {
+    FT operator()(const Point_& point) const {
+        return std::sqrt(point.x() * point.x() + point.y() * point.y() + point.z() * point.z());
+    }
+};
+
+template <class GeomTraits>
+    CGAL::Isosurfacing::Implicit_domain < GeomTraits,
+    SphereFunction<GeomTraits>> implicit_sphere(const std::size_t N) {
+
+    const FT resolution = 2.0 / N;
+    auto domain = CGAL::Isosurfacing::create_implicit_domain(SphereFunction < GeomTraits>(), {-1, -1, -1, 1, 1, 1},
+                                                             Vector(resolution, resolution, resolution));
+    return domain;
+}
+
+    template <class GeomTraits>
+CGAL::Isosurfacing::Cartesian_grid_domain<GeomTraits> grid_sphere(const std::size_t N) {
+
     const FT resolution = 2.0 / N;
 
     Grid grid(N, N, N, {-1, -1, -1, 1, 1, 1});
@@ -77,20 +81,8 @@ int64_t grid_sphere(const std::size_t N) {
         }
     }
     CGAL::Isosurfacing::Cartesian_grid_domain<Kernel> domain(grid);
-
-    Point_range points;
-    Polygon_range polygons;
-
-    ScopeTimer timer;
-    CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes(domain, 0.8f, points, polygons);
-
-    const int64_t ms = timer.stop();
-
-    if (points.size() > std::numeric_limits<std::size_t>::max() - 2) {
-        std::cout << "This should never print and only prevents optimizations" << std::endl;
+    return domain;
     }
-    return ms;
-}
 
 int main(int argc, char* argv[]) {
     std::unordered_map<std::string, std::function<int64_t(std::size_t)>> scenarios;

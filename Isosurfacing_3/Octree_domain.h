@@ -6,6 +6,7 @@
 #include <array>
 
 #include "Octree_wrapper.h"
+#include "Cell_type.h"
 
 namespace CGAL {
 namespace Isosurfacing {
@@ -23,8 +24,12 @@ public:
     typedef typename Octree::Edge_handle Edge_handle;
     typedef typename Octree::Voxel_handle Cell_handle;
 
+    static constexpr Cell_type CELL_TYPE = CUBICAL_CELL;
+    static constexpr std::size_t VERTICES_PER_CELL = 8;
+    static constexpr std::size_t EDGES_PER_CELL = 12;
+
     typedef std::array<Vertex_handle, 2> Edge_vertices;
-    typedef std::array<Cell_handle, 4> Cells_incident_to_edge;
+    typedef std::array<Cell_handle, 4> Cells_incident_to_edge;  // TODO: not alwayys 4
     typedef std::array<Vertex_handle, 8> Cell_vertices;
     typedef std::array<Edge_handle, 12> Cell_edges;
 

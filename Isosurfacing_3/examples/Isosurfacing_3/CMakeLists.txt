@@ -36,7 +36,7 @@ foreach(exec ${EXECUTABLES})
 
   # enable all warnings
   if(MSVC)
-    target_compile_options(${exec_name} PRIVATE /W4)
+    target_compile_options(${exec_name} PRIVATE /W3)
   else()
     target_compile_options(${exec_name} PRIVATE -Wall -Wextra -pedantic)
   endif()

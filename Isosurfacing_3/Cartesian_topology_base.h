@@ -2,6 +2,7 @@
 #define CGAL_CARTESIAN_TOPOLOGY_BASE_H
 
 #include "Isosurfacing_3/internal/Tables.h"
+#include "Cell_type.h"
 
 namespace CGAL {
 namespace Isosurfacing {
@@ -12,6 +13,7 @@ public:
     typedef std::array<std::size_t, 4> Edge_handle;
     typedef std::array<std::size_t, 3> Cell_handle;
 
+    static constexpr Cell_type CELL_TYPE = CUBICAL_CELL;
     static constexpr std::size_t VERTICES_PER_CELL = 8;
     static constexpr std::size_t EDGES_PER_CELL = 12;
 
