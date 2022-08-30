@@ -1,8 +1,8 @@
 #ifndef CGAL_DUAL_CONTOURING_3_H
 #define CGAL_DUAL_CONTOURING_3_H
 
-#include "Isosurfacing_3/internal/Dual_contouring_internal.h"
 #include "Cell_type.h"
+#include "Isosurfacing_3/internal/Dual_contouring_internal.h"
 
 namespace CGAL {
 namespace Isosurfacing {
@@ -13,7 +13,7 @@ void make_quad_mesh_using_dual_contouring(const Domain_& domain, const typename 
                                           PointRange& points, PolygonRange& polygons,
                                           const Positioning& positioning = Positioning()) {
 
-    static_assert(Domain_::CELL_TYPE & ANY_CELL);
+    // static_assert(Domain_::CELL_TYPE & ANY_CELL);
 
     internal::Dual_contouring_position_functor<Domain_, Positioning> pos_func(domain, iso_value, positioning);
     domain.iterate_cells(pos_func, Concurrency_tag());

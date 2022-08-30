@@ -3,8 +3,8 @@
 
 #include <mutex>
 
-#include "Isosurfacing_3/internal/Tmc_internal.h"
 #include "Cell_type.h"
+#include "Isosurfacing_3/internal/Tmc_internal.h"
 
 namespace CGAL {
 namespace Isosurfacing {
@@ -13,7 +13,7 @@ template <typename Concurrency_tag = Sequential_tag, class Domain_, class PointR
 void make_triangle_mesh_using_tmc(const Domain_& domain, const typename Domain_::FT iso_value, PointRange& points,
                                   PolygonRange& polygons) {
 
-    static_assert(Domain_::CELL_TYPE & CUBICAL_CELL);
+    // static_assert(Domain_::CELL_TYPE & CUBICAL_CELL);
 
     internal::TMC_functor<Domain_, PointRange, PolygonRange> functor(domain, iso_value, points, polygons);
     domain.iterate_cells(functor, Concurrency_tag());

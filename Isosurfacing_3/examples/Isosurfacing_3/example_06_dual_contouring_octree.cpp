@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-#include "../../Dual_contouring.h"
+#include "../../Dual_contouring_3.h"
 #include "../../Octree_domain.h"
 #include "../../Octree_wrapper.h"
 

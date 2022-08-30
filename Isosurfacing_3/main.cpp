@@ -6,7 +6,7 @@
 #include "Cartesian_grid_3.h"
 #include "Cartesian_grid_domain.h"
 #include "Cartesian_grid_domain_old.h"
-#include "Dual_contouring.h"
+#include "Dual_contouring_3.h"
 #include "Implicit_domain.h"
 #include "Implicit_domain_old.h"
 #include "Marching_cubes_3.h"

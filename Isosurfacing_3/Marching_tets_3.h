@@ -9,9 +9,9 @@ namespace Isosurfacing {
 
 template <typename Concurrency_tag = Sequential_tag, class Domain_, class PointRange, class PolygonRange>
 void make_triangle_mesh_using_marching_tets(const Domain_& domain, const typename Domain_::FT iso_value,
-                                             PointRange& points, PolygonRange& polygons) {
+                                            PointRange& points, PolygonRange& polygons) {
 
-    static_assert(Domain_::CELL_TYPE & TETRAHEDRAL_CELL);
+    // static_assert(Domain_::CELL_TYPE & TETRAHEDRAL_CELL);
 
     internal::Marching_tets_functor<Domain_, PointRange, PolygonRange> functor(domain, iso_value, points, polygons);
     domain.iterate_cells(functor, Concurrency_tag());

@@ -10,7 +10,7 @@
 
 #include "../../Cartesian_grid_3.h"
 #include "../../Cartesian_grid_domain.h"
-#include "../../Dual_contouring.h"
+#include "../../Dual_contouring_3.h"
 
 typedef CGAL::Simple_cartesian<float> Kernel;
 typedef typename Kernel::FT FT;

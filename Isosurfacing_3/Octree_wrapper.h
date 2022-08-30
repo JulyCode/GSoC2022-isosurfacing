@@ -231,10 +231,10 @@ public:
     }
 
     Point_3 point(const Vertex_handle& v) const {
-        const auto [i, j, k] = ijk_index(v, max_depth_);
-        const FT x0 = offset_x_ + i * hx_;
-        const FT y0 = offset_y_ + j * hx_;
-        const FT z0 = offset_z_ + k * hx_;
+        const auto idx = ijk_index(v, max_depth_);
+        const FT x0 = offset_x_ + idx[0] * hx_;
+        const FT y0 = offset_y_ + idx[1] * hx_;
+        const FT z0 = offset_z_ + idx[2] * hx_;
         return {x0, y0, z0};
     }
 
@@ -277,8 +277,8 @@ public:
     }
 
     Node get_node(const std::size_t lex_index) const {
-        const auto [i, j, k] = ijk_index(lex_index, max_depth_);
-        return get_node(i, j, k);
+        const auto idx = ijk_index(lex_index, max_depth_);
+        return get_node(idx[0], idx[1], idx[2]);
     }
 
     std::size_t lex_index(const std::size_t& i, const std::size_t& j, const std::size_t& k,
@@ -326,14 +326,14 @@ public:
     std::array<FT, 8> voxel_values(const Voxel_handle& vox) const {
         namespace Tables = internal::Cube_table;
 
-        const auto [i, j, k] = ijk_index(vox, max_depth_);
-        Node node = get_node(i, j, k);
+        const auto idx = ijk_index(vox, max_depth_);
+        Node node = get_node(idx[0], idx[1], idx[2]);
         const auto& df = depth_factor(node.depth());
 
         std::array<Vertex_handle, 8> v;
         for (int v_id = 0; v_id < Tables::N_VERTICES; ++v_id) {
             const auto& l = Tables::local_vertex_position[v_id];
-            const auto lex = lex_index(i + df * l[0], j + df * l[1], k + df * l[2], max_depth_);
+            const auto lex = lex_index(idx[0] + df * l[0], idx[1] + df * l[1], idx[2] + df * l[2], max_depth_);
             v[v_id] = lex;
         }
 
@@ -363,14 +363,14 @@ public:
     std::array<Vertex_handle, 8> voxel_vertices(const Voxel_handle& vox) const {
         namespace Tables = internal::Cube_table;
 
-        const auto [i, j, k] = ijk_index(vox, max_depth_);
-        Node node = get_node(i, j, k);
+        const auto idx = ijk_index(vox, max_depth_);
+        Node node = get_node(idx[0], idx[1], idx[2]);
         const auto& df = depth_factor(node.depth());
 
         std::array<Vertex_handle, 8> v;
         for (int v_id = 0; v_id < Tables::N_VERTICES; ++v_id) {
             const auto& l = Tables::local_vertex_position[v_id];
-            const auto lex = lex_index(i + df * l[0], j + df * l[1], k + df * l[2], max_depth_);
+            const auto lex = lex_index(idx[0] + df * l[0], idx[1] + df * l[1], idx[2] + df * l[2], max_depth_);
             v[v_id] = lex;
         }
 
@@ -380,14 +380,14 @@ public:
     std::array<Vector_3, 8> voxel_gradients(const Voxel_handle& vox) const {
         namespace Tables = internal::Cube_table;
 
-        const auto [i, j, k] = ijk_index(vox, max_depth_);
-        Node node = get_node(i, j, k);
+        const auto idx = ijk_index(vox, max_depth_);
+        Node node = get_node(idx[0], idx[1], idx[2]);
         const auto& df = depth_factor(node.depth());
 
         std::array<Vertex_handle, 8> v;
         for (int v_id = 0; v_id < Tables::N_VERTICES; ++v_id) {
             const auto& l = Tables::local_vertex_position[v_id];
-            const auto lex = lex_index(i + df * l[0], j + df * l[1], k + df * l[2], max_depth_);
+            const auto lex = lex_index(idx[0] + df * l[0], idx[1] + df * l[1], idx[2] + df * l[2], max_depth_);
             v[v_id] = lex;
         }
 
@@ -410,11 +410,13 @@ public:
     std::array<FT, 2> edge_values(const Edge_handle& e_id) const {
         namespace Tables = internal::Cube_table;
 
-        const auto& [e_global_id, depth] = e_id;
+        std::size_t e_global_id, depth;
+        std::tie(e_global_id, depth) = e_id;
         const auto df = depth_factor(depth);
 
         const size_t v0_lex_index = e_global_id / 3;
-        const auto [i0, j0, k0] = ijk_index(v0_lex_index, depth);
+        const auto idx = ijk_index(v0_lex_index, depth);
+        const std::size_t i0 = idx[0], j0 = idx[1], k0 = idx[2];
 
         // v1
         const std::size_t e_local_index = Tables::edge_store_index[e_global_id % 3];
@@ -433,11 +435,13 @@ public:
     std::array<Vertex_handle, 2> edge_vertices(const Edge_handle& e_id) const {
         namespace Tables = internal::Cube_table;
 
-        const auto& [e_global_id, depth] = e_id;
+        std::size_t e_global_id, depth;
+        std::tie(e_global_id, depth) = e_id;
         const auto df = depth_factor(depth);
 
         const size_t v0_lex_index = e_global_id / 3;
-        const auto [i0, j0, k0] = ijk_index(v0_lex_index, depth);
+        const auto idx = ijk_index(v0_lex_index, depth);
+        const std::size_t i0 = idx[0], j0 = idx[1], k0 = idx[2];
 
         // v1
         const std::size_t e_local_index = Tables::edge_store_index[e_global_id % 3];
@@ -463,13 +467,15 @@ public:
     std::array<std::size_t, 4> edge_voxels(const Edge_handle& e_id) const {
         namespace Tables = internal::Cube_table;
 
-        const auto& [e_global_id, depth] = e_id;
+        std::size_t e_global_id, depth;
+        std::tie(e_global_id, depth) = e_id;
         const std::size_t e_local_index = Tables::edge_store_index[e_global_id % 3];
 
         const auto df = depth_factor(depth);
 
         const size_t v0_lex_index = e_global_id / 3;
-        auto [i, j, k] = ijk_index(v0_lex_index, depth);
+        const auto idx = ijk_index(v0_lex_index, depth);
+        std::size_t i = idx[0], j = idx[1], k = idx[2];
         i *= df;
         j *= df;
         k *= df;
