@@ -26,13 +26,13 @@ typedef std::vector<Point> Point_range;
 typedef std::vector<std::vector<std::size_t>> Polygon_range;
 
 
-template<typename Function, class Domain_>
-int64_t run_func(Function func, const Domain_& domain, const typename Domain_::FT iso) {
+template <typename Function, class Scenario>
+int64_t run_func(Function func, const Scenario& scenario) {
     Point_range points;
     Polygon_range polygons;
 
     ScopeTimer timer;
-    func(domain, iso, points, polygons);
+    func(scenario.domain(), scenario.iso(), points, polygons);
 
     const int64_t ms = timer.stop();
 
@@ -42,52 +42,73 @@ int64_t run_func(Function func, const Domain_& domain, const typename Domain_::F
     return ms;
 }
 
-template<class Point_>
+template <class Point_>
 struct SphereFunction {
     FT operator()(const Point_& point) const {
         return std::sqrt(point.x() * point.x() + point.y() * point.y() + point.z() * point.z());
     }
 };
 
+struct Benchmark {
+    typedef void Domain;
+};
+
 template <class GeomTraits>
-    CGAL::Isosurfacing::Implicit_domain < GeomTraits,
-    SphereFunction<GeomTraits>> implicit_sphere(const std::size_t N) {
+struct Implicit_sphere : Benchmark {
 
-    const FT resolution = 2.0 / N;
-    auto domain = CGAL::Isosurfacing::create_implicit_domain(SphereFunction < GeomTraits>(), {-1, -1, -1, 1, 1, 1},
-                                                             Vector(resolution, resolution, resolution));
-    return domain;
-}
+    typedef CGAL::Isosurfacing::Implicit_domain<GeomTraits, SphereFunction<GeomTraits>> Domain;
 
-    template <class GeomTraits>
-CGAL::Isosurfacing::Cartesian_grid_domain<GeomTraits> grid_sphere(const std::size_t N) {
+    Domain domain(const std::size_t N) const {
 
-    const FT resolution = 2.0 / N;
+        const FT resolution = 2.0 / N;
+        auto domain = CGAL::Isosurfacing::create_implicit_domain(SphereFunction<GeomTraits>(), {-1, -1, -1, 1, 1, 1},
+                                                                 Vector(resolution, resolution, resolution));
+        return domain;
+    }
 
-    Grid grid(N, N, N, {-1, -1, -1, 1, 1, 1});
+    typename GeomTraits::FT iso() const {
+        return 0.8;
+    }
+};
+
+template <class GeomTraits>
+struct Grid_sphere : Benchmark {
+
+    typedef CGAL::Isosurfacing::Cartesian_grid_domain<GeomTraits> Domain;
+
+    Domain domain(const std::size_t N) const {
+
+        const FT resolution = 2.0 / N;
+
+        Grid grid(N, N, N, {-1, -1, -1, 1, 1, 1});
 
 #pragma omp parallel for
-    for (std::size_t x = 0; x < grid.xdim(); x++) {
-        const FT xp = x * resolution - 1.0;
+        for (std::size_t x = 0; x < grid.xdim(); x++) {
+            const FT xp = x * resolution - 1.0;
 
-        for (std::size_t y = 0; y < grid.ydim(); y++) {
-            const FT yp = y * resolution - 1.0;
+            for (std::size_t y = 0; y < grid.ydim(); y++) {
+                const FT yp = y * resolution - 1.0;
 
-            for (std::size_t z = 0; z < grid.zdim(); z++) {
-                const FT zp = z * resolution - 1.0;
+                for (std::size_t z = 0; z < grid.zdim(); z++) {
+                    const FT zp = z * resolution - 1.0;
 
-                grid.value(x, y, z) = std::sqrt(xp * xp + yp * yp + zp * zp);
+                    grid.value(x, y, z) = std::sqrt(xp * xp + yp * yp + zp * zp);
+                }
             }
         }
-    }
-    CGAL::Isosurfacing::Cartesian_grid_domain<Kernel> domain(grid);
-    return domain;
+        CGAL::Isosurfacing::Cartesian_grid_domain<Kernel> domain(grid);
+        return domain;
     }
 
+    typename GeomTraits::FT iso() const {
+        return 0.8;
+    }
+};
+
 int main(int argc, char* argv[]) {
-    std::unordered_map<std::string, std::function<int64_t(std::size_t)>> scenarios;
-    scenarios["implicit_sphere"] = implicit_sphere;
-    scenarios["grid_sphere"] = grid_sphere;
+    std::unordered_map<std::string, Benchmark> scenarios;
+    scenarios["implicit_sphere"] = Implicit_sphere<Kernel>();
+    scenarios["grid_sphere"] = Grid_sphere<Kernel>();
 
     if (argc != 3) {
         std::cout << "Usage: " << argv[0] << " <scenario> <N>" << std::endl;
@@ -110,8 +131,10 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    auto& benchmark = it->second;
-    int64_t ms = benchmark(N);
+    auto& scenario = it->second;
+    auto func = CGAL::Isosurfacing::make_triangle_mesh_using_marching_cubes < CGAL;
+
+    int64_t ms = run_func(func, scenario);
 
     std::cout << ms << std::endl;
 }

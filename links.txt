@@ -1,0 +1,10 @@
+https://github.com/rogrosso/tmc/tree/master/dmc
+https://github.com/CGAL/cgal/wiki/Writing-Documentation
+https://doc.cgal.org/latest/Convex_hull_2/classConvexHullTraits__2.html
+https://www.rx-solutions.com/en
+https://arxiv.org/pdf/2202.02171.pdf
+https://github.com/CGAL/cgal/blob/master/Alpha_wrap_3/include/CGAL/Alpha_wrap_3/internal/Oracle_base.h
+https://www.cs.rice.edu/~jwarren/papers/dualcontour.pdf
+https://github.com/PhiliGuertler/ManifoldDMC
+http://schorsch.efi.fh-nuernberg.de/data/volume/
+https://doc.cgal.org/latest/Mesh_3/index.html#title25
